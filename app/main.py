@@ -9,7 +9,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 import os
 
-from routers.comparison import router as comparison_router
+from app.routers.comparison import router as comparison_router
 
 app = FastAPI(
     title="QRL Architecture Comparison Demo",
