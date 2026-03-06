@@ -18,7 +18,7 @@ from typing import AsyncGenerator, Optional
 
 import numpy as np
 
-from models.comparison_models import (
+from app.models.comparison_models import (
     DemoConfig,
     RegimeLabel,
     SignalDomain,

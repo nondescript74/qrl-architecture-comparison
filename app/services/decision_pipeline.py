@@ -17,7 +17,7 @@ from typing import Optional
 
 import numpy as np
 
-from models.comparison_models import (
+from app.models.comparison_models import (
     DecisionPipelineState,
     DemoConfig,
     Hypothesis,
@@ -28,7 +28,7 @@ from models.comparison_models import (
     SignalTick,
     SimilarityMatch,
 )
-from services.hypothesis_tracker import HypothesisTracker
+from app.services.hypothesis_tracker import HypothesisTracker
 
 
 # ──────────────────────────────────────────────────────────────────

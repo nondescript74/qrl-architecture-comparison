@@ -22,7 +22,7 @@ from typing import Optional
 
 import numpy as np
 
-from models.comparison_models import (
+from app.models.comparison_models import (
     DemoConfig,
     Hypothesis,
     HypothesisSet,

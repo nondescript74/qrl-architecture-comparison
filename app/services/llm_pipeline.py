@@ -23,7 +23,7 @@ from typing import Optional
 
 import httpx
 
-from models.comparison_models import (
+from app.models.comparison_models import (
     DemoConfig,
     LLMPipelineState,
     RegimeLabel,

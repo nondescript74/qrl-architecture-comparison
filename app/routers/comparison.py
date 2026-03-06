@@ -26,15 +26,15 @@ from fastapi import APIRouter
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
-from models.comparison_models import (
+from app.models.comparison_models import (
     ComparisonFrame,
     DemoConfig,
     DivergenceEvent,
     SignalDomain,
 )
-from services.decision_pipeline import DecisionPipeline
-from services.llm_pipeline import LLMPipeline
-from services.signal_service import SignalService
+from app.services.decision_pipeline import DecisionPipeline
+from app.services.llm_pipeline import LLMPipeline
+from app.services.signal_service import SignalService
 
 router = APIRouter()
 
