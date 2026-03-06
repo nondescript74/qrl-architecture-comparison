@@ -10,7 +10,7 @@ Endpoints:
   GET  /comparison/health          → liveness check
 
 Mount in your main.py:
-    from routers.comparison import router as comparison_router
+    from app.routers.comparison import router as comparison_router
     app.include_router(comparison_router, prefix="/comparison", tags=["comparison"])
 """
 
