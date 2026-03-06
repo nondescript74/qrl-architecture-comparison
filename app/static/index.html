@@ -737,6 +737,50 @@
   .stat-value.red { color: var(--red); }
   .stat-value.cyan { color: var(--cyan); }
 
+  /* ── WATERMARK ── */
+  .watermark {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+  .watermark-text {
+    font-family: var(--sans);
+    font-size: 72px;
+    font-weight: 700;
+    color: rgba(255,255,255,0.045);
+    white-space: nowrap;
+    transform: rotate(-35deg);
+    letter-spacing: 0.04em;
+    user-select: none;
+    text-transform: uppercase;
+  }
+
+  /* ── COPYRIGHT FOOTER ── */
+  .copyright-bar {
+    background: var(--bg-panel);
+    border-top: 1px solid var(--border);
+    padding: 8px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .copyright-text {
+    font-family: var(--sans);
+    font-size: 11px;
+    color: var(--text-dim);
+  }
+  .copyright-text a {
+    color: var(--cyan);
+    text-decoration: none;
+    font-weight: 600;
+  }
+  .copyright-text a:hover { text-decoration: underline; }
+
   /* scrollbar */
   ::-webkit-scrollbar { width: 4px; }
   ::-webkit-scrollbar-track { background: var(--bg); }
@@ -756,6 +800,11 @@
 </style>
 </head>
 <body>
+
+<!-- Watermark -->
+<div class="watermark">
+  <div class="watermark-text">industriallystrong.com</div>
+</div>
 
 <!-- Divergence Banner (top bar flash) -->
 <div class="divergence-banner" id="divBanner"></div>
@@ -1122,6 +1171,16 @@
   </div>
 </div>
 
+
+<!-- Copyright Footer -->
+<div class="copyright-bar">
+  <div class="copyright-text">
+    &copy; 2026 <strong>Zahirudeen Premji</strong>. All rights reserved. Proprietary and confidential.
+  </div>
+  <div class="copyright-text">
+    <a href="https://industriallystrong.com" target="_blank">industriallystrong.com</a>
+  </div>
+</div>
 
 <script>
   // Railway backend URL — set before main script runs
