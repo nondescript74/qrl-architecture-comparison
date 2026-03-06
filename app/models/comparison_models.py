@@ -160,7 +160,7 @@ class ComparisonFrame(BaseModel):
     """Single SSE frame emitted to the frontend animation."""
     frame_id: int
     ts: float = Field(default_factory=time.time)
-    signal: SignalTick
+    signal: Optional[SignalTick] = None
     llm_state: Optional[LLMPipelineState] = None
     decision_state: Optional[DecisionPipelineState] = None
     divergence: Optional[DivergenceEvent] = None
