@@ -1,0 +1,1800 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Architecture Comparison — LLM-Only vs Decision Architecture</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,300;0,400;0,500;0,700;1,300&family=IBM+Plex+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg:         #0a0b0d;
+    --bg-panel:   #0f1114;
+    --bg-card:    #141820;
+    --bg-card2:   #1a1f2b;
+    --border:     #1e2535;
+    --border-hi:  #2a3348;
+
+    --amber:      #f5a623;
+    --amber-dim:  #7a5312;
+    --amber-glow: rgba(245,166,35,0.12);
+    --cyan:       #00d4b8;
+    --cyan-dim:   #005a4e;
+    --cyan-glow:  rgba(0,212,184,0.12);
+    --red:        #ff3b3b;
+    --red-glow:   rgba(255,59,59,0.18);
+    --green:      #39d98a;
+    --muted:      #4a5568;
+    --text:       #c8d0e0;
+    --text-dim:   #5a6578;
+    --text-bright:#eef2ff;
+
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'IBM Plex Sans', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--mono);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    padding: 18px 32px 14px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--bg-panel);
+    position: sticky; top: 0; z-index: 100;
+  }
+  .header-left { display: flex; align-items: center; gap: 14px; }
+  .header-badge {
+    font-family: var(--sans);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--bg);
+    background: var(--cyan);
+    padding: 3px 8px;
+    border-radius: 2px;
+  }
+  .header-title {
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-bright);
+    letter-spacing: 0.02em;
+  }
+  .header-subtitle {
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 0.06em;
+    margin-top: 2px;
+    font-family: var(--sans);
+  }
+  .header-right { display: flex; align-items: center; gap: 20px; }
+  .tick-counter {
+    font-size: 11px;
+    color: var(--text-dim);
+  }
+  .tick-counter span { color: var(--cyan); font-weight: 500; }
+
+  .domain-toggle {
+    display: flex; gap: 0;
+    border: 1px solid var(--border-hi);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .domain-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-dim);
+    font-family: var(--mono);
+    font-size: 10px;
+    padding: 5px 12px;
+    cursor: pointer;
+    letter-spacing: 0.08em;
+    transition: all 0.2s;
+  }
+  .domain-btn.active { background: var(--cyan); color: var(--bg); }
+  .domain-btn:hover:not(.active) { color: var(--text); background: var(--border); }
+
+  .run-btn {
+    background: var(--cyan);
+    color: var(--bg);
+    border: none;
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 700;
+    padding: 7px 18px;
+    border-radius: 2px;
+    cursor: pointer;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    transition: all 0.2s;
+  }
+  .run-btn:hover { background: #00f0d0; }
+  .run-btn.running { background: var(--amber); color: var(--bg); }
+
+  /* ── SIGNAL STRIP ── */
+  .signal-strip {
+    background: var(--bg-panel);
+    border-bottom: 1px solid var(--border);
+    padding: 10px 32px;
+    display: flex;
+    align-items: center;
+    gap: 32px;
+  }
+  .signal-label {
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-bottom: 2px;
+  }
+  .signal-value {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text-bright);
+  }
+  .signal-value.up { color: var(--green); }
+  .signal-value.down { color: var(--red); }
+  .signal-canvas-wrap {
+    flex: 1;
+    height: 48px;
+    position: relative;
+    overflow: hidden;
+  }
+  canvas#signalChart {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+
+  /* ── MAIN GRID ── */
+  .main-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    min-height: calc(100vh - 130px);
+  }
+  .col-divider {
+    position: relative;
+  }
+  .col-divider::after {
+    content: '';
+    position: absolute;
+    top: 0; bottom: 0; right: 0;
+    width: 1px;
+    background: linear-gradient(to bottom, transparent, var(--border) 10%, var(--border) 90%, transparent);
+  }
+
+  /* ── COLUMN HEADERS ── */
+  .col-header {
+    padding: 16px 24px 14px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+  }
+  .col-header-left {}
+  .col-name {
+    font-family: var(--sans);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .llm-col .col-name { color: var(--amber); }
+  .dec-col .col-name { color: var(--cyan); }
+  .col-desc {
+    font-size: 10px;
+    color: var(--text-dim);
+    font-family: var(--sans);
+    font-weight: 300;
+    max-width: 260px;
+    line-height: 1.5;
+  }
+  .col-indicator {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 10px;
+  }
+  .ind-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .ind-dot.amber { background: var(--amber); box-shadow: 0 0 6px var(--amber); }
+  .ind-dot.cyan  { background: var(--cyan);  box-shadow: 0 0 6px var(--cyan); }
+  .ind-dot.pulse { animation: pulse 1.8s ease-in-out infinite; }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50%       { opacity: 0.4; transform: scale(0.7); }
+  }
+
+  /* ── COLUMN BODY ── */
+  .col-body {
+    padding: 20px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  /* ── CARDS ── */
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+    transition: border-color 0.3s;
+  }
+  .card-header {
+    padding: 8px 14px;
+    border-bottom: 1px solid var(--border);
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .card-body { padding: 14px; }
+
+  /* ── LLM PIPELINE STAGES ── */
+  .pipeline-stages {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+  .stage-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+  }
+  .stage-row:last-child { border-bottom: none; }
+  .stage-icon {
+    width: 28px; height: 28px;
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    flex-shrink: 0;
+  }
+  .stage-icon.amber { background: var(--amber-glow); border: 1px solid var(--amber-dim); color: var(--amber); }
+  .stage-icon.cyan  { background: var(--cyan-glow);  border: 1px solid var(--cyan-dim);  color: var(--cyan); }
+  .stage-icon.muted { background: rgba(30,37,53,0.8); border: 1px solid var(--border); color: var(--muted); }
+  .stage-text { flex: 1; }
+  .stage-name {
+    font-size: 10px;
+    color: var(--text-bright);
+    margin-bottom: 2px;
+  }
+  .stage-detail {
+    font-size: 9px;
+    color: var(--text-dim);
+    font-family: var(--sans);
+  }
+  .stage-arrow {
+    font-size: 10px;
+    color: var(--text-dim);
+  }
+  .stage-row.active .stage-icon.amber { animation: stageFlash 0.6s ease-out; }
+  .stage-row.active .stage-icon.cyan  { animation: stageFlashCyan 0.6s ease-out; }
+  @keyframes stageFlash {
+    0%   { background: var(--amber); color: var(--bg); box-shadow: 0 0 16px var(--amber); }
+    100% { background: var(--amber-glow); color: var(--amber); box-shadow: none; }
+  }
+  @keyframes stageFlashCyan {
+    0%   { background: var(--cyan); color: var(--bg); box-shadow: 0 0 16px var(--cyan); }
+    100% { background: var(--cyan-glow); color: var(--cyan); box-shadow: none; }
+  }
+
+  /* ── LLM OUTPUT BOX ── */
+  .llm-output {
+    background: var(--bg-card2);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 12px 14px;
+    position: relative;
+    overflow: hidden;
+  }
+  .llm-output::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, var(--amber-glow), transparent);
+    transform: translateX(-100%);
+    transition: none;
+  }
+  .llm-output.flash::before {
+    animation: sweepAmber 0.7s ease-out forwards;
+  }
+  @keyframes sweepAmber {
+    0%   { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+  }
+  .llm-label-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+  .llm-label-text {
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--amber);
+    text-transform: uppercase;
+    transition: all 0.3s;
+  }
+  .llm-conf {
+    font-size: 11px;
+    color: var(--text-dim);
+  }
+  .collapse-indicator {
+    margin-top: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 9px;
+    color: var(--amber-dim);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .collapse-bar {
+    flex: 1;
+    height: 2px;
+    background: var(--border);
+    position: relative;
+    border-radius: 1px;
+    overflow: hidden;
+  }
+  .collapse-bar-fill {
+    position: absolute;
+    top: 0; left: 0; bottom: 0;
+    background: var(--amber);
+    width: 100%;
+    transition: width 0.4s;
+  }
+  .failure-modes {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  .failure-row {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 9.5px;
+    color: var(--text-dim);
+    font-family: var(--sans);
+    padding: 5px 8px;
+    border-radius: 2px;
+    border: 1px solid transparent;
+    transition: all 0.3s;
+  }
+  .failure-row.active {
+    background: rgba(255,59,59,0.07);
+    border-color: rgba(255,59,59,0.2);
+    color: #ff8080;
+  }
+  .failure-dot {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--border-hi);
+    flex-shrink: 0;
+    transition: background 0.3s;
+  }
+  .failure-row.active .failure-dot { background: var(--red); }
+
+  /* ── HYPOTHESIS BARS ── */
+  .hyp-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .hyp-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .hyp-label {
+    font-size: 9.5px;
+    color: var(--text-dim);
+    width: 100px;
+    flex-shrink: 0;
+    letter-spacing: 0.03em;
+    transition: color 0.3s;
+  }
+  .hyp-row.top .hyp-label { color: var(--cyan); }
+  .hyp-bar-track {
+    flex: 1;
+    height: 8px;
+    background: var(--bg-card2);
+    border-radius: 2px;
+    overflow: hidden;
+    position: relative;
+  }
+  .hyp-bar-fill {
+    position: absolute;
+    top: 0; left: 0; bottom: 0;
+    background: linear-gradient(90deg, var(--cyan-dim), var(--cyan));
+    border-radius: 2px;
+    transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .hyp-row.top .hyp-bar-fill {
+    background: linear-gradient(90deg, #005a4e, var(--cyan));
+    box-shadow: 0 0 8px rgba(0, 212, 184, 0.4);
+  }
+  .hyp-weight {
+    font-size: 10px;
+    color: var(--text-dim);
+    width: 40px;
+    text-align: right;
+    flex-shrink: 0;
+    transition: color 0.3s;
+  }
+  .hyp-row.top .hyp-weight { color: var(--cyan); font-weight: 500; }
+
+  /* ── ENTROPY METER ── */
+  .entropy-wrap {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .entropy-gauge {
+    position: relative;
+    width: 72px; height: 72px;
+    flex-shrink: 0;
+  }
+  .entropy-gauge svg { width: 100%; height: 100%; }
+  .entropy-gauge .gauge-track {
+    fill: none;
+    stroke: var(--border-hi);
+    stroke-width: 5;
+    stroke-linecap: round;
+  }
+  .entropy-gauge .gauge-fill {
+    fill: none;
+    stroke: var(--cyan);
+    stroke-width: 5;
+    stroke-linecap: round;
+    stroke-dasharray: 188;
+    stroke-dashoffset: 188;
+    transform-origin: center;
+    transform: rotate(-90deg);
+    transition: stroke-dashoffset 0.8s cubic-bezier(0.16,1,0.3,1), stroke 0.5s;
+  }
+  .entropy-center {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  .entropy-value {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--cyan);
+    line-height: 1;
+    transition: color 0.3s;
+  }
+  .entropy-unit {
+    font-size: 8px;
+    color: var(--text-dim);
+    letter-spacing: 0.06em;
+    margin-top: 1px;
+  }
+  .entropy-meta { flex: 1; }
+  .entropy-title {
+    font-size: 10px;
+    color: var(--text-bright);
+    margin-bottom: 4px;
+    letter-spacing: 0.04em;
+  }
+  .entropy-desc {
+    font-size: 9px;
+    color: var(--text-dim);
+    font-family: var(--sans);
+    line-height: 1.5;
+    margin-bottom: 8px;
+  }
+  .entropy-level {
+    display: flex;
+    gap: 3px;
+  }
+  .entropy-pip {
+    height: 4px;
+    flex: 1;
+    background: var(--border-hi);
+    border-radius: 1px;
+    transition: background 0.4s;
+  }
+  .entropy-pip.lit { background: var(--cyan); }
+
+  /* ── RANKED ACTIONS ── */
+  .action-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .action-row {
+    background: var(--bg-card2);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.4s;
+  }
+  .action-row.top-action {
+    border-color: var(--cyan-dim);
+    background: rgba(0,84,78,0.15);
+  }
+  .action-rank {
+    font-size: 10px;
+    color: var(--text-dim);
+    width: 16px;
+    flex-shrink: 0;
+  }
+  .action-row.top-action .action-rank { color: var(--cyan); }
+  .action-name {
+    flex: 1;
+    font-size: 10px;
+    color: var(--text-bright);
+    font-family: var(--sans);
+    font-weight: 400;
+  }
+  .action-score {
+    font-size: 12px;
+    color: var(--cyan);
+    font-weight: 500;
+    width: 44px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+  .action-ci {
+    font-size: 8.5px;
+    color: var(--text-dim);
+    margin-top: 2px;
+    font-family: var(--sans);
+  }
+
+  /* ── DIVERGENCE BANNER ── */
+  .divergence-banner {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--red);
+    transform: scaleX(0);
+    transform-origin: left;
+    z-index: 200;
+    pointer-events: none;
+  }
+  .divergence-banner.flash {
+    animation: divFlash 1.8s ease-out forwards;
+  }
+  @keyframes divFlash {
+    0%   { transform: scaleX(0); opacity: 1; }
+    20%  { transform: scaleX(1); opacity: 1; }
+    80%  { transform: scaleX(1); opacity: 1; }
+    100% { transform: scaleX(1); opacity: 0; }
+  }
+
+  .divergence-toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--bg-card2);
+    border: 1px solid var(--red);
+    border-radius: 4px;
+    padding: 12px 20px;
+    min-width: 420px;
+    max-width: 600px;
+    z-index: 200;
+    pointer-events: none;
+    opacity: 0;
+    transition: all 0.4s cubic-bezier(0.16,1,0.3,1);
+    box-shadow: 0 0 30px var(--red-glow);
+  }
+  .divergence-toast.show {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+  }
+  .div-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+  .div-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--red);
+    animation: blinkRed 0.6s step-end infinite;
+  }
+  @keyframes blinkRed {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0; }
+  }
+  .div-title {
+    font-size: 11px;
+    color: var(--red);
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .div-labels {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 6px;
+  }
+  .div-label-pill {
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 2px;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+  }
+  .div-label-pill.amber-pill { background: var(--amber-glow); color: var(--amber); border: 1px solid var(--amber-dim); }
+  .div-label-pill.cyan-pill  { background: var(--cyan-glow);  color: var(--cyan);  border: 1px solid var(--cyan-dim); }
+  .div-arrow { color: var(--text-dim); font-size: 12px; }
+  .div-desc {
+    font-size: 10px;
+    color: var(--text-dim);
+    font-family: var(--sans);
+    line-height: 1.5;
+  }
+  .div-magnitude {
+    margin-top: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 9px;
+    color: var(--text-dim);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .div-mag-bar {
+    flex: 1;
+    height: 3px;
+    background: var(--border-hi);
+    border-radius: 1px;
+    overflow: hidden;
+  }
+  .div-mag-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--amber), var(--red));
+    border-radius: 1px;
+    transition: width 0.4s;
+  }
+
+  /* ── LATENCY STRIP ── */
+  .latency-row {
+    display: flex;
+    gap: 14px;
+    align-items: center;
+  }
+  .lat-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 9.5px;
+    color: var(--text-dim);
+  }
+  .lat-value {
+    font-size: 11px;
+    font-weight: 500;
+    transition: color 0.3s;
+  }
+  .lat-value.amber { color: var(--amber); }
+  .lat-value.cyan  { color: var(--cyan); }
+
+  /* ── STATS BAR ── */
+  .stats-bar {
+    background: var(--bg-panel);
+    border-top: 1px solid var(--border);
+    padding: 10px 32px;
+    display: flex;
+    gap: 32px;
+    align-items: center;
+  }
+  .stat-item { }
+  .stat-label {
+    font-size: 8.5px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 2px;
+  }
+  .stat-value {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-bright);
+    transition: color 0.3s;
+  }
+  .stat-value.red { color: var(--red); }
+  .stat-value.cyan { color: var(--cyan); }
+
+  /* scrollbar */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border-hi); border-radius: 2px; }
+
+  /* column highlight flash on divergence */
+  .llm-col.div-flash { animation: colFlashAmber 0.8s ease-out; }
+  .dec-col.div-flash { animation: colFlashCyan 0.8s ease-out; }
+  @keyframes colFlashAmber {
+    0%   { background: rgba(245,166,35,0.07); }
+    100% { background: transparent; }
+  }
+  @keyframes colFlashCyan {
+    0%   { background: rgba(0,212,184,0.07); }
+    100% { background: transparent; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Divergence Banner (top bar flash) -->
+<div class="divergence-banner" id="divBanner"></div>
+
+<!-- ── HEADER ── -->
+<div class="header">
+  <div class="header-left">
+    <div class="header-badge">LIVE DEMO</div>
+    <div>
+      <div class="header-title">Architecture Comparison — LLM-Only vs. Decision Architecture</div>
+      <div class="header-subtitle">Uncertainty collapse vs. hypothesis preservation under regime shift</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="tick-counter">TICK <span id="tickCounter">0</span></div>
+    <div class="domain-toggle">
+      <button class="domain-btn active" id="btnFinancial" onclick="setDomain('financial')">FINANCIAL</button>
+      <button class="domain-btn" id="btnSensor" onclick="setDomain('sensor')">SENSOR</button>
+    </div>
+    <button class="run-btn" id="runBtn" onclick="toggleRun()">▶ RUN</button>
+  </div>
+</div>
+
+<!-- ── SIGNAL STRIP ── -->
+<div class="signal-strip">
+  <div>
+    <div class="signal-label">INSTRUMENT</div>
+    <div class="signal-value" id="instrLabel" style="font-size:13px;color:var(--text-dim)">ES.c.0</div>
+  </div>
+  <div>
+    <div class="signal-label">PRICE</div>
+    <div class="signal-value" id="priceVal">—</div>
+  </div>
+  <div>
+    <div class="signal-label">RET₁</div>
+    <div class="signal-value" id="ret1Val">—</div>
+  </div>
+  <div>
+    <div class="signal-label">VOL</div>
+    <div class="signal-value" id="volVal">—</div>
+  </div>
+  <div>
+    <div class="signal-label">SPREAD</div>
+    <div class="signal-value" id="spreadVal">—</div>
+  </div>
+  <div class="signal-canvas-wrap">
+    <canvas id="signalChart"></canvas>
+  </div>
+</div>
+
+<!-- ── MAIN GRID ── -->
+<div class="main-grid">
+
+  <!-- ═══ LLM-ONLY COLUMN ═══ -->
+  <div class="llm-col col-divider" id="llmCol">
+    <div class="col-header">
+      <div class="col-header-left">
+        <div class="col-name">LLM-Only System</div>
+        <div class="col-desc">Single inference over bounded context. Uncertainty collapsed to one answer per tick.</div>
+      </div>
+      <div class="col-indicator">
+        <div class="ind-dot amber pulse" id="llmDot"></div>
+        <span style="font-size:9px;color:var(--text-dim);letter-spacing:.06em">INFERRING</span>
+      </div>
+    </div>
+
+    <div class="col-body">
+
+      <!-- Pipeline stages -->
+      <div class="card">
+        <div class="card-header">
+          <span>PIPELINE STAGES</span>
+          <span id="llmLatency" style="color:var(--amber);font-size:10px">—</span>
+        </div>
+        <div class="card-body">
+          <div class="pipeline-stages">
+            <div class="stage-row" id="llmStage0">
+              <div class="stage-icon amber">⊞</div>
+              <div class="stage-text">
+                <div class="stage-name">Real-World Signals</div>
+                <div class="stage-detail" id="llmSignalDetail">price · events · data streams</div>
+              </div>
+              <div class="stage-arrow">↓</div>
+            </div>
+            <div class="stage-row" id="llmStage1">
+              <div class="stage-icon muted">▤</div>
+              <div class="stage-text">
+                <div class="stage-name">Prompt Construction</div>
+                <div class="stage-detail" id="llmPromptDetail">context assembly from partial observations</div>
+              </div>
+              <div class="stage-arrow">↓</div>
+            </div>
+            <div class="stage-row" id="llmStage2">
+              <div class="stage-icon muted">◈</div>
+              <div class="stage-text">
+                <div class="stage-name">Large Language Model</div>
+                <div class="stage-detail">single inference over bounded context</div>
+              </div>
+              <div class="stage-arrow">↓</div>
+            </div>
+            <div class="stage-row" id="llmStage3">
+              <div class="stage-icon muted">◉</div>
+              <div class="stage-text">
+                <div class="stage-name">Generated Answer</div>
+                <div class="stage-detail">compressed response — one label</div>
+              </div>
+              <div class="stage-arrow">↓</div>
+            </div>
+            <div class="stage-row" id="llmStage4">
+              <div class="stage-icon muted">▶</div>
+              <div class="stage-text">
+                <div class="stage-name">Action Execution</div>
+                <div class="stage-detail">decision from single output</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- LLM output -->
+      <div class="card">
+        <div class="card-header">
+          <span>CURRENT ANSWER</span>
+          <span style="color:var(--text-dim);font-size:9px">hypothesis_count = 1</span>
+        </div>
+        <div class="card-body">
+          <div class="llm-output" id="llmOutputBox">
+            <div class="llm-label-row">
+              <div class="llm-label-text" id="llmLabelText">—</div>
+              <div class="llm-conf" id="llmConf"></div>
+            </div>
+            <div class="collapse-indicator">
+              <span>uncertainty collapsed</span>
+              <div class="collapse-bar"><div class="collapse-bar-fill" id="collapseBar"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Failure modes -->
+      <div class="card">
+        <div class="card-header"><span>FAILURE MODES</span></div>
+        <div class="card-body">
+          <div class="failure-modes">
+            <div class="failure-row active" id="fm0">
+              <div class="failure-dot"></div>
+              <span>Uncertainty collapsed into one answer</span>
+            </div>
+            <div class="failure-row" id="fm1">
+              <div class="failure-dot"></div>
+              <span>No explicit competing hypotheses</span>
+            </div>
+            <div class="failure-row" id="fm2">
+              <div class="failure-dot"></div>
+              <span>Weak adaptation to regime change</span>
+            </div>
+            <div class="failure-row" id="fm3">
+              <div class="failure-dot"></div>
+              <span>Limited state memory across time</span>
+            </div>
+            <div class="failure-row" id="fm4">
+              <div class="failure-dot"></div>
+              <span>Decision path only partially inspectable</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═══ DECISION ARCHITECTURE COLUMN ═══ -->
+  <div class="dec-col" id="decCol">
+    <div class="col-header">
+      <div class="col-header-left">
+        <div class="col-name">Decision Architecture</div>
+        <div class="col-desc">Competing hypotheses maintained. Uncertainty preserved until evidence accumulates.</div>
+      </div>
+      <div class="col-indicator">
+        <div class="ind-dot cyan pulse" id="decDot"></div>
+        <span style="font-size:9px;color:var(--text-dim);letter-spacing:.06em">TRACKING</span>
+      </div>
+    </div>
+
+    <div class="col-body">
+
+      <!-- Pipeline stages (decision) -->
+      <div class="card">
+        <div class="card-header">
+          <span>PIPELINE STAGES</span>
+          <span id="decLatency" style="color:var(--cyan);font-size:10px">—</span>
+        </div>
+        <div class="card-body">
+          <div class="pipeline-stages">
+            <div class="stage-row" id="decStage0">
+              <div class="stage-icon cyan">⊞</div>
+              <div class="stage-text">
+                <div class="stage-name">Real-World Signals</div>
+                <div class="stage-detail" id="decSignalDetail">price · events · data streams</div>
+              </div>
+              <div class="stage-arrow">↓</div>
+            </div>
+            <div class="stage-row" id="decStage1">
+              <div class="stage-icon muted">⊛</div>
+              <div class="stage-text">
+                <div class="stage-name">Latent State Encoder</div>
+                <div class="stage-detail" id="decVecDetail">10-D normalized feature vector</div>
+              </div>
+              <div class="stage-arrow">↓</div>
+            </div>
+            <div class="stage-row" id="decStage2">
+              <div class="stage-icon muted">⊕</div>
+              <div class="stage-text">
+                <div class="stage-name">Similarity Retrieval</div>
+                <div class="stage-detail" id="decSimDetail">FAISS ANN search · historical regimes</div>
+              </div>
+              <div class="stage-arrow">↓</div>
+            </div>
+            <div class="stage-row" id="decStage3">
+              <div class="stage-icon muted">⊗</div>
+              <div class="stage-text">
+                <div class="stage-name">Hypothesis Tracking</div>
+                <div class="stage-detail" id="decHypDetail">Bayesian MHT · 5 competing hypotheses</div>
+              </div>
+              <div class="stage-arrow">↓</div>
+            </div>
+            <div class="stage-row" id="decStage4">
+              <div class="stage-icon muted">▶</div>
+              <div class="stage-text">
+                <div class="stage-name">Decision Evaluation</div>
+                <div class="stage-detail">actions scored before commitment</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hypothesis bars -->
+      <div class="card" id="hypCard">
+        <div class="card-header">
+          <span>LIVE HYPOTHESES</span>
+          <span style="font-size:9px;color:var(--text-dim)">H = <span id="entropyInline">—</span> bits</span>
+        </div>
+        <div class="card-body">
+          <div class="hyp-list" id="hypList"></div>
+        </div>
+      </div>
+
+      <!-- Entropy + ranked actions row -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+
+        <!-- Entropy gauge -->
+        <div class="card">
+          <div class="card-header"><span>UNCERTAINTY</span></div>
+          <div class="card-body">
+            <div class="entropy-wrap">
+              <div class="entropy-gauge">
+                <svg viewBox="0 0 72 72">
+                  <circle class="gauge-track" cx="36" cy="36" r="30" stroke-dasharray="188" stroke-dashoffset="0"/>
+                  <circle class="gauge-fill" id="gaugeArc" cx="36" cy="36" r="30"/>
+                </svg>
+                <div class="entropy-center">
+                  <div class="entropy-value" id="entropyVal">0.0</div>
+                  <div class="entropy-unit">BITS</div>
+                </div>
+              </div>
+              <div class="entropy-meta">
+                <div class="entropy-title">Shannon Entropy</div>
+                <div class="entropy-desc">High entropy = preserved uncertainty. Decision architecture does not collapse to one answer prematurely.</div>
+                <div class="entropy-level" id="entropyPips"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Ranked actions -->
+        <div class="card">
+          <div class="card-header"><span>RANKED ACTIONS</span></div>
+          <div class="card-body">
+            <div class="action-list" id="actionList"></div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Resilient properties -->
+      <div class="card">
+        <div class="card-header"><span>RESILIENT PROPERTIES</span></div>
+        <div class="card-body">
+          <div class="failure-modes">
+            <div class="failure-row active" style="border-color:rgba(0,212,184,0.2);background:rgba(0,212,184,0.05);">
+              <div class="failure-dot" style="background:var(--cyan)"></div>
+              <span style="color:var(--cyan)">Competing hypotheses maintained explicitly</span>
+            </div>
+            <div class="failure-row active" id="rp1" style="border-color:rgba(0,212,184,0.2);background:rgba(0,212,184,0.05);">
+              <div class="failure-dot" style="background:var(--cyan)"></div>
+              <span style="color:var(--cyan)">Historical regimes retrieved structurally</span>
+            </div>
+            <div class="failure-row" id="rp2">
+              <div class="failure-dot"></div>
+              <span>State transitions tracked over time</span>
+            </div>
+            <div class="failure-row" id="rp3">
+              <div class="failure-dot"></div>
+              <span>Actions scored before commitment</span>
+            </div>
+            <div class="failure-row" id="rp4">
+              <div class="failure-dot"></div>
+              <span>Decision basis remains inspectable</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div><!-- end main-grid -->
+
+<!-- Stats bar -->
+<div class="stats-bar">
+  <div class="stat-item">
+    <div class="stat-label">DIVERGENCE EVENTS</div>
+    <div class="stat-value red" id="statDiv">0</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-label">LLM INFERENCES</div>
+    <div class="stat-value" id="statLLM">0</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-label">HYP TRACKED</div>
+    <div class="stat-value cyan" id="statHyp">—</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-label">AVG ENTROPY</div>
+    <div class="stat-value cyan" id="statEntropy">—</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-label">TOP REGIME</div>
+    <div class="stat-value" id="statTopRegime">—</div>
+  </div>
+  <div style="flex:1;text-align:right;">
+    <div class="stat-label">DATA SOURCE</div>
+    <div class="stat-value" id="statSource" style="font-size:11px;color:var(--text-dim)">SYNTHETIC MOCK</div>
+  </div>
+</div>
+
+<!-- Divergence toast -->
+<div class="divergence-toast" id="divToast">
+  <div class="div-header">
+    <div class="div-dot"></div>
+    <div class="div-title">⚡ DIVERGENCE DETECTED</div>
+  </div>
+  <div class="div-labels">
+    <div class="div-label-pill amber-pill" id="divLlmLabel">—</div>
+    <div class="div-arrow">≠</div>
+    <div class="div-label-pill cyan-pill" id="divDecLabel">—</div>
+  </div>
+  <div class="div-desc" id="divDesc">—</div>
+  <div class="div-magnitude">
+    <span>MAGNITUDE</span>
+    <div class="div-mag-bar"><div class="div-mag-fill" id="divMagFill" style="width:0%"></div></div>
+    <span id="divMagVal">0.0</span>
+  </div>
+</div>
+
+
+<script>
+  // Railway backend URL — set before main script runs
+  window.COMPARISON_API_URL = 'https://web-production-06a1.up.railway.app';
+</script>
+<script>
+// ─────────────────────────────────────────────────────────
+// MOCK SSE GENERATOR
+// Simulates the frame payload from the FastAPI /comparison/stream
+// ─────────────────────────────────────────────────────────
+
+const FINANCIAL_LABELS = ['bull_trend','bear_trend','mean_revert','high_volatility','regime_shift'];
+const SENSOR_LABELS    = ['nominal','anomaly_drift','fault_imminent','recovery'];
+
+const FINANCIAL_ACTIONS = [
+  {short:'LONG',  full:'LONG  — trend following momentum entry'},
+  {short:'SHORT', full:'SHORT — trend following momentum entry'},
+  {short:'FLAT',  full:'FLAT  — stand aside, await confirmation'},
+  {short:'HEDGE', full:'HEDGE — reduce gross exposure, add optionality'},
+  {short:'SIZE↓', full:'SIZE_DOWN — reduce position size, elevated uncertainty'},
+];
+const SENSOR_ACTIONS = [
+  {short:'MONITOR',  full:'MONITOR  — continue normal observation cadence'},
+  {short:'ALERT',    full:'ALERT    — escalate monitoring frequency'},
+  {short:'INSPECT',  full:'INSPECT  — dispatch maintenance team'},
+  {short:'SHUTDOWN', full:'SHUTDOWN — initiate controlled shutdown'},
+  {short:'RECOVER',  full:'RECOVER  — execute recovery protocol'},
+];
+
+const DIV_DESCRIPTIONS = {
+  'bull_trend|bear_trend':      'Directional disagreement — LLM collapsed trend; MHT shows conflict',
+  'bear_trend|bull_trend':      'Directional disagreement — LLM collapsed trend; MHT shows conflict',
+  'bull_trend|mean_revert':     'LLM sees momentum; MHT tracks reversion hypothesis',
+  'mean_revert|bull_trend':     'LLM sees momentum; MHT tracks reversion hypothesis',
+  'bear_trend|high_volatility': 'LLM attributes volatility to trend; MHT separates regime type',
+  'high_volatility|bear_trend': 'LLM attributes volatility to trend; MHT separates regime type',
+  'regime_shift|mean_revert':   'LLM missed regime shift signal preserved in hypothesis tree',
+  'mean_revert|regime_shift':   'LLM missed regime shift signal preserved in hypothesis tree',
+  'nominal|anomaly_drift':      'LLM reports normal; MHT anomaly hypothesis is rising',
+  'anomaly_drift|nominal':      'LLM reports normal; MHT anomaly hypothesis is rising',
+  'fault_imminent|recovery':    'LLM sees recovery; MHT fault hypothesis still material',
+  'recovery|fault_imminent':    'LLM sees recovery; MHT fault hypothesis still material',
+};
+
+class MockSSE {
+  constructor() {
+    this.domain = 'financial';
+    this.tickIndex = 0;
+    this.price = 5200;
+    this.hypWeights = {};
+    this.currentRegime = 'bull_trend';
+    this.regimeTicks = 0;
+    this.maxRegimeTicks = 20 + Math.floor(Math.random() * 40);
+    this._initWeights();
+  }
+
+  _labels() {
+    return this.domain === 'financial' ? FINANCIAL_LABELS : SENSOR_LABELS;
+  }
+
+  _initWeights() {
+    const labels = this._labels();
+    const n = labels.length;
+    this.hypWeights = {};
+    labels.forEach((l, i) => {
+      this.hypWeights[l] = (i === 0) ? 0.6 : 0.1;
+    });
+    this._normalizeWeights();
+  }
+
+  _normalizeWeights() {
+    const total = Object.values(this.hypWeights).reduce((a,b) => a+b, 0);
+    for (const k in this.hypWeights) this.hypWeights[k] /= total;
+  }
+
+  _maybeShiftRegime() {
+    this.regimeTicks++;
+    if (this.regimeTicks < this.maxRegimeTicks) return;
+    const labels = this._labels();
+    this.currentRegime = labels[Math.floor(Math.random() * labels.length)];
+    this.regimeTicks = 0;
+    this.maxRegimeTicks = 20 + Math.floor(Math.random() * 40);
+    // Sharp weight update on regime shift
+    for (const k in this.hypWeights) {
+      this.hypWeights[k] = k === this.currentRegime ? 0.55 : 0.05 + Math.random() * 0.1;
+    }
+    this._normalizeWeights();
+  }
+
+  _updateWeights() {
+    this._maybeShiftRegime();
+    // Bayesian drift: reinforce current regime, perturb others
+    for (const k in this.hypWeights) {
+      if (k === this.currentRegime) {
+        this.hypWeights[k] = Math.min(0.85, this.hypWeights[k] * (1 + 0.08 * Math.random()));
+      } else {
+        this.hypWeights[k] *= (0.9 + 0.1 * Math.random());
+        this.hypWeights[k] = Math.max(0.01, this.hypWeights[k]);
+      }
+    }
+    this._normalizeWeights();
+  }
+
+  _topHypothesis() {
+    return Object.entries(this.hypWeights).sort((a,b) => b[1]-a[1])[0][0];
+  }
+
+  _entropy() {
+    let H = 0;
+    for (const w of Object.values(this.hypWeights)) {
+      if (w > 0) H -= w * Math.log2(w);
+    }
+    return H;
+  }
+
+  _nextPrice() {
+    const drifts = {bull_trend:0.0008, bear_trend:-0.001, mean_revert:0, high_volatility:0, regime_shift:0.001, nominal:0, anomaly_drift:0.002, fault_imminent:0.004, recovery:-0.001};
+    const vols   = {bull_trend:0.0012, bear_trend:0.0018, mean_revert:0.0006, high_volatility:0.004, regime_shift:0.004, nominal:0.001, anomaly_drift:0.005, fault_imminent:0.012, recovery:0.003};
+    const d = drifts[this.currentRegime] || 0;
+    const v = vols[this.currentRegime]   || 0.001;
+    this.price *= (1 + d + v * (Math.random()*2-1));
+    return this.price;
+  }
+
+  _llmLabel() {
+    // LLM sometimes gets it right, sometimes lags or picks wrong
+    const correct = this._topHypothesis();
+    const labels = this._labels();
+    // 60% chance correct, 40% chance adjacent or wrong
+    if (Math.random() < 0.60) return correct;
+    const others = labels.filter(l => l !== correct);
+    return others[Math.floor(Math.random() * others.length)];
+  }
+
+  _makeActions(topHyp) {
+    const isFinancial = this.domain === 'financial';
+    const actions = isFinancial ? FINANCIAL_ACTIONS : SENSOR_ACTIONS;
+    const affinity = {
+      bull_trend:     [0.8,0.02,0.08,0.05,0.05],
+      bear_trend:     [0.02,0.8,0.08,0.06,0.04],
+      mean_revert:    [0.2,0.2,0.35,0.15,0.1],
+      high_volatility:[0.05,0.05,0.15,0.45,0.3],
+      regime_shift:   [0.1,0.1,0.15,0.35,0.3],
+      nominal:        [0.85,0.08,0.04,0.02,0.01],
+      anomaly_drift:  [0.2,0.55,0.15,0.07,0.03],
+      fault_imminent: [0.02,0.1,0.35,0.48,0.05],
+      recovery:       [0.25,0.15,0.1,0.05,0.45],
+    };
+    const probs = affinity[topHyp] || [0.2,0.2,0.2,0.2,0.2];
+    return actions.map((a, i) => ({
+      action: a.full,
+      score: +probs[i].toFixed(3),
+      ci: [+(probs[i]*0.8).toFixed(3), +(Math.min(1, probs[i]*1.2)).toFixed(3)],
+    })).sort((a,b) => b.score-a.score);
+  }
+
+  nextFrame() {
+    this._updateWeights();
+    this.tickIndex++;
+
+    const price = this._nextPrice();
+    const ret1 = (Math.random()-0.48) * 0.002;
+    const vol = 0.0005 + Math.random() * 0.003;
+    const spread = price * 0.0001;
+    const topHyp = this._topHypothesis();
+    const entropy = this._entropy();
+
+    const doLLM = this.tickIndex % 3 === 0;
+    let llmLabel = null, llmConf = null, llmLatency = null;
+    if (doLLM) {
+      llmLabel = this._llmLabel();
+      llmConf = +(0.55 + Math.random() * 0.40).toFixed(2);
+      llmLatency = +(180 + Math.random() * 700).toFixed(0);
+    }
+
+    const divergence = doLLM && llmLabel !== topHyp ? {
+      llm_label: llmLabel,
+      decision_label: topHyp,
+      magnitude: +(0.4 + entropy * 0.3).toFixed(3),
+      description: DIV_DESCRIPTIONS[`${llmLabel}|${topHyp}`] || `LLM: ${llmLabel} | MHT: ${topHyp}`,
+    } : null;
+
+    const stage = divergence ? 'divergence' : doLLM ? 'llm_inference' : (this.tickIndex % 5 === 0 ? 'hypothesis_update' : 'tick');
+
+    return {
+      frame_id: this.tickIndex,
+      stage,
+      domain: this.domain,
+      signal: {
+        instrument: this.domain === 'financial' ? 'ES.c.0' : 'reactor-loop-1',
+        price: +price.toFixed(2),
+        returns_1: +ret1.toFixed(5),
+        volatility: +vol.toFixed(5),
+        spread: +spread.toFixed(4),
+        volume: Math.floor(200 + Math.random()*1800),
+      },
+      llm_state: doLLM ? {
+        parsed_label: llmLabel,
+        confidence_stated: llmConf,
+        latency_ms: llmLatency,
+        hypothesis_count: 1,
+        uncertainty_collapsed: true,
+      } : null,
+      decision_state: {
+        hypothesis_set: {
+          hypotheses: Object.entries(this.hypWeights).map(([label, weight]) => ({
+            label, weight: +weight.toFixed(4),
+          })).sort((a,b) => b.weight-a.weight),
+          top_label: topHyp,
+          top_weight: +this.hypWeights[topHyp].toFixed(4),
+          entropy: +entropy.toFixed(3),
+          tick_index: this.tickIndex,
+        },
+        ranked_actions: this._makeActions(topHyp),
+        latency_ms: +(1 + Math.random()*8).toFixed(2),
+        hypothesis_count: Object.keys(this.hypWeights).length,
+      },
+      divergence,
+    };
+  }
+
+  setDomain(domain) {
+    this.domain = domain;
+    this.tickIndex = 0;
+    this.price = domain === 'financial' ? 5200 : 72;
+    this._initWeights();
+    this.currentRegime = this._labels()[0];
+  }
+}
+
+// ─────────────────────────────────────────────────────────
+// SIGNAL CHART
+// ─────────────────────────────────────────────────────────
+
+class SignalChart {
+  constructor(canvas) {
+    this.canvas = canvas;
+    this.ctx = canvas.getContext('2d');
+    this.prices = [];
+    this.maxPoints = 120;
+  }
+
+  resize() {
+    const dpr = window.devicePixelRatio || 1;
+    const rect = this.canvas.parentElement.getBoundingClientRect();
+    this.canvas.width = rect.width * dpr;
+    this.canvas.height = rect.height * dpr;
+    this.ctx.scale(dpr, dpr);
+    this._w = rect.width;
+    this._h = rect.height;
+  }
+
+  push(price) {
+    this.prices.push(price);
+    if (this.prices.length > this.maxPoints) this.prices.shift();
+    this.draw();
+  }
+
+  draw() {
+    const { ctx, prices } = this;
+    if (!this._w) return;
+    ctx.clearRect(0, 0, this._w, this._h);
+
+    if (prices.length < 2) return;
+
+    const min = Math.min(...prices);
+    const max = Math.max(...prices);
+    const range = max - min || 1;
+    const pad = 4;
+
+    const x = i => (i / (prices.length - 1)) * this._w;
+    const y = v => this._h - pad - ((v - min) / range) * (this._h - 2*pad);
+
+    // Area fill
+    const grad = ctx.createLinearGradient(0, 0, 0, this._h);
+    grad.addColorStop(0, 'rgba(0,212,184,0.15)');
+    grad.addColorStop(1, 'rgba(0,212,184,0)');
+    ctx.beginPath();
+    ctx.moveTo(x(0), this._h);
+    prices.forEach((p, i) => ctx.lineTo(x(i), y(p)));
+    ctx.lineTo(x(prices.length-1), this._h);
+    ctx.closePath();
+    ctx.fillStyle = grad;
+    ctx.fill();
+
+    // Line
+    ctx.beginPath();
+    prices.forEach((p, i) => i === 0 ? ctx.moveTo(x(i), y(p)) : ctx.lineTo(x(i), y(p)));
+    ctx.strokeStyle = '#00d4b8';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    // Last dot
+    const lastX = x(prices.length-1);
+    const lastY = y(prices[prices.length-1]);
+    ctx.beginPath();
+    ctx.arc(lastX, lastY, 3, 0, Math.PI*2);
+    ctx.fillStyle = '#00d4b8';
+    ctx.fill();
+  }
+}
+
+// ─────────────────────────────────────────────────────────
+// UI UPDATER
+// ─────────────────────────────────────────────────────────
+
+class UI {
+  constructor() {
+    this.chart = new SignalChart(document.getElementById('signalChart'));
+    this.divCount = 0;
+    this.llmCount = 0;
+    this.entropySum = 0;
+    this.entropySamples = 0;
+    this._toastTimer = null;
+    this._initPips();
+    window.addEventListener('resize', () => this.chart.resize());
+    setTimeout(() => this.chart.resize(), 100);
+  }
+
+  _initPips() {
+    const container = document.getElementById('entropyPips');
+    container.innerHTML = '';
+    for (let i = 0; i < 10; i++) {
+      const pip = document.createElement('div');
+      pip.className = 'entropy-pip';
+      pip.id = `pip${i}`;
+      container.appendChild(pip);
+    }
+  }
+
+  applyFrame(frame) {
+    // Signal strip
+    const sig = frame.signal;
+    if (sig) {
+      document.getElementById('instrLabel').textContent = sig.instrument || '—';
+      const pEl = document.getElementById('priceVal');
+      if (sig.price) {
+        pEl.textContent = sig.price.toFixed(2);
+        pEl.className = 'signal-value ' + (sig.returns_1 >= 0 ? 'up' : 'down');
+        this.chart.push(sig.price);
+      }
+      const r1 = sig.returns_1;
+      if (r1 != null) {
+        document.getElementById('ret1Val').textContent = (r1 >= 0 ? '+' : '') + (r1*100).toFixed(3) + '%';
+        document.getElementById('ret1Val').className = 'signal-value ' + (r1 >= 0 ? 'up' : 'down');
+      }
+      if (sig.volatility) document.getElementById('volVal').textContent = (sig.volatility*100).toFixed(3) + '%';
+      if (sig.spread)     document.getElementById('spreadVal').textContent = sig.spread.toFixed(4);
+    }
+
+    // Tick counter
+    document.getElementById('tickCounter').textContent = frame.frame_id;
+
+    // Stage animations
+    this._animateStage(frame.stage, frame.domain);
+
+    // LLM state
+    if (frame.llm_state) {
+      this.llmCount++;
+      document.getElementById('statLLM').textContent = this.llmCount;
+      this._updateLLM(frame.llm_state, frame.stage === 'divergence');
+    }
+
+    // Decision state
+    if (frame.decision_state) {
+      this._updateDecision(frame.decision_state);
+    }
+
+    // Divergence
+    if (frame.divergence) {
+      this.divCount++;
+      document.getElementById('statDiv').textContent = this.divCount;
+      this._showDivergence(frame.divergence);
+    }
+
+    // Stats
+    if (frame.decision_state?.hypothesis_set) {
+      const hs = frame.decision_state.hypothesis_set;
+      document.getElementById('statHyp').textContent = hs.hypotheses.length;
+      document.getElementById('statTopRegime').textContent = hs.top_label.replace(/_/g,' ').toUpperCase();
+      this.entropySum += hs.entropy;
+      this.entropySamples++;
+      document.getElementById('statEntropy').textContent = (this.entropySum/this.entropySamples).toFixed(2);
+    }
+  }
+
+  _animateStage(stage, domain) {
+    // LLM pipeline stage highlight
+    const llmMap = {tick:0, llm_inference:2, hypothesis_update:1, divergence:3, end:4};
+    const llmIdx = llmMap[stage] ?? 0;
+    for (let i = 0; i <= 4; i++) {
+      const row = document.getElementById(`llmStage${i}`);
+      if (!row) continue;
+      row.classList.remove('active');
+      const icon = row.querySelector('.stage-icon');
+      icon.classList.remove('amber');
+      icon.classList.add('muted');
+    }
+    const activeRow = document.getElementById(`llmStage${llmIdx}`);
+    if (activeRow) {
+      activeRow.classList.add('active');
+      const icon = activeRow.querySelector('.stage-icon');
+      icon.classList.remove('muted');
+      icon.classList.add('amber');
+    }
+
+    // Decision pipeline: always advances to hypothesis_update
+    const decMap = {tick:1, llm_inference:1, hypothesis_update:3, divergence:4, end:4};
+    const decIdx = decMap[stage] ?? 1;
+    for (let i = 0; i <= 4; i++) {
+      const row = document.getElementById(`decStage${i}`);
+      if (!row) continue;
+      row.classList.remove('active');
+      const icon = row.querySelector('.stage-icon');
+      icon.classList.remove('cyan');
+      icon.classList.add('muted');
+    }
+    const activeDecRow = document.getElementById(`decStage${decIdx}`);
+    if (activeDecRow) {
+      activeDecRow.classList.add('active');
+      const icon = activeDecRow.querySelector('.stage-icon');
+      icon.classList.remove('muted');
+      icon.classList.add('cyan');
+    }
+  }
+
+  _updateLLM(ls, isDivergence) {
+    const labelEl = document.getElementById('llmLabelText');
+    labelEl.textContent = (ls.parsed_label || '—').replace(/_/g,' ').toUpperCase();
+    if (ls.confidence_stated) {
+      document.getElementById('llmConf').textContent = `conf: ${ls.confidence_stated}`;
+    }
+    if (ls.latency_ms) {
+      document.getElementById('llmLatency').textContent = `${ls.latency_ms}ms`;
+    }
+    // Flash sweep
+    const box = document.getElementById('llmOutputBox');
+    box.classList.remove('flash');
+    void box.offsetWidth;
+    box.classList.add('flash');
+
+    // Failure modes — randomly activate relevant ones on divergence
+    if (isDivergence) {
+      const fmIds = ['fm1','fm2','fm3','fm4'];
+      fmIds.forEach(id => {
+        const el = document.getElementById(id);
+        if (Math.random() < 0.7) { el.classList.add('active'); }
+        else { el.classList.remove('active'); }
+      });
+    }
+
+    // Resilient properties — light up more over time
+    if (this.llmCount > 5) {
+      document.getElementById('rp2').style.cssText = 'border-color:rgba(0,212,184,0.2);background:rgba(0,212,184,0.05)';
+      document.getElementById('rp2').querySelector('.failure-dot').style.background = 'var(--cyan)';
+      document.getElementById('rp2').querySelector('span').style.color = 'var(--cyan)';
+    }
+    if (this.llmCount > 10) {
+      document.getElementById('rp3').style.cssText = 'border-color:rgba(0,212,184,0.2);background:rgba(0,212,184,0.05)';
+      document.getElementById('rp3').querySelector('.failure-dot').style.background = 'var(--cyan)';
+      document.getElementById('rp3').querySelector('span').style.color = 'var(--cyan)';
+    }
+    if (this.llmCount > 15) {
+      document.getElementById('rp4').style.cssText = 'border-color:rgba(0,212,184,0.2);background:rgba(0,212,184,0.05)';
+      document.getElementById('rp4').querySelector('.failure-dot').style.background = 'var(--cyan)';
+      document.getElementById('rp4').querySelector('span').style.color = 'var(--cyan)';
+    }
+  }
+
+  _updateDecision(ds) {
+    const hs = ds.hypothesis_set;
+    if (!hs) return;
+
+    // Hypothesis bars
+    const list = document.getElementById('hypList');
+    list.innerHTML = '';
+    hs.hypotheses.forEach((h, i) => {
+      const isTop = h.label === hs.top_label;
+      const row = document.createElement('div');
+      row.className = 'hyp-row' + (isTop ? ' top' : '');
+      row.innerHTML = `
+        <div class="hyp-label">${h.label.replace(/_/g,' ')}</div>
+        <div class="hyp-bar-track">
+          <div class="hyp-bar-fill" style="width:${(h.weight*100).toFixed(1)}%"></div>
+        </div>
+        <div class="hyp-weight">${(h.weight*100).toFixed(1)}%</div>
+      `;
+      list.appendChild(row);
+    });
+
+    // Entropy gauge
+    const entropy = hs.entropy;
+    const maxH = Math.log2(hs.hypotheses.length) || 1;
+    const frac = Math.min(1, entropy / maxH);
+    const circumference = 188;
+    const offset = circumference * (1 - frac);
+    const arc = document.getElementById('gaugeArc');
+    arc.style.strokeDashoffset = offset;
+    // Color shift: low entropy = cyan, high entropy = green (uncertainty is good here)
+    arc.style.stroke = frac > 0.7 ? '#39d98a' : frac > 0.4 ? '#00d4b8' : '#006e5e';
+    document.getElementById('entropyVal').textContent = entropy.toFixed(2);
+    document.getElementById('entropyInline').textContent = entropy.toFixed(2);
+
+    // Pips
+    const litCount = Math.round(frac * 10);
+    for (let i = 0; i < 10; i++) {
+      const pip = document.getElementById(`pip${i}`);
+      if (pip) pip.className = 'entropy-pip' + (i < litCount ? ' lit' : '');
+    }
+
+    // Actions
+    const actionList = document.getElementById('actionList');
+    actionList.innerHTML = '';
+    ds.ranked_actions.slice(0,3).forEach((a, i) => {
+      const row = document.createElement('div');
+      row.className = 'action-row' + (i === 0 ? ' top-action' : '');
+      const shortName = a.action.split('—')[0].trim().split(' ')[0];
+      row.innerHTML = `
+        <div class="action-rank">${i+1}</div>
+        <div class="action-text">
+          <div class="action-name">${a.action.substring(0,38)}</div>
+          <div class="action-ci">CI [${a.ci[0]}–${a.ci[1]}]</div>
+        </div>
+        <div class="action-score">${(a.score*100).toFixed(0)}%</div>
+      `;
+      actionList.appendChild(row);
+    });
+
+    if (ds.latency_ms) {
+      document.getElementById('decLatency').textContent = `${ds.latency_ms}ms`;
+    }
+  }
+
+  _showDivergence(div) {
+    // Banner
+    const banner = document.getElementById('divBanner');
+    banner.classList.remove('flash');
+    void banner.offsetWidth;
+    banner.classList.add('flash');
+
+    // Column flashes
+    const llmCol = document.getElementById('llmCol');
+    const decCol = document.getElementById('decCol');
+    llmCol.classList.remove('div-flash');
+    decCol.classList.remove('div-flash');
+    void llmCol.offsetWidth;
+    llmCol.classList.add('div-flash');
+    decCol.classList.add('div-flash');
+
+    // Toast
+    document.getElementById('divLlmLabel').textContent = (div.llm_label || '—').replace(/_/g,' ').toUpperCase();
+    document.getElementById('divDecLabel').textContent = (div.decision_label || '—').replace(/_/g,' ').toUpperCase();
+    document.getElementById('divDesc').textContent = div.description || '—';
+    document.getElementById('divMagFill').style.width = ((div.magnitude||0)*100) + '%';
+    document.getElementById('divMagVal').textContent = (div.magnitude||0).toFixed(2);
+
+    const toast = document.getElementById('divToast');
+    toast.classList.add('show');
+    if (this._toastTimer) clearTimeout(this._toastTimer);
+    this._toastTimer = setTimeout(() => toast.classList.remove('show'), 4000);
+  }
+}
+
+// ─────────────────────────────────────────────────────────
+// MAIN CONTROLLER
+// ─────────────────────────────────────────────────────────
+
+const mock = new MockSSE();
+const ui   = new UI();
+let running = false;
+let timer = null;
+let domain = 'financial';
+
+function toggleRun() {
+  running = !running;
+  const btn = document.getElementById('runBtn');
+  if (running) {
+    btn.textContent = '⏸ PAUSE';
+    btn.classList.add('running');
+    tick();
+  } else {
+    btn.textContent = '▶ RUN';
+    btn.classList.remove('running');
+    clearTimeout(timer);
+  }
+}
+
+function tick() {
+  if (!running) return;
+  const frame = mock.nextFrame();
+  ui.applyFrame(frame);
+  // Faster on divergence for dramatic effect
+  const delay = frame.stage === 'divergence' ? 1800 : 800;
+  timer = setTimeout(tick, delay);
+}
+
+function setDomain(d) {
+  domain = d;
+  mock.setDomain(d);
+  ui.chart.prices = [];
+  document.getElementById('btnFinancial').classList.toggle('active', d === 'financial');
+  document.getElementById('btnSensor').classList.toggle('active', d === 'sensor');
+  document.getElementById('instrLabel').textContent = d === 'financial' ? 'ES.c.0' : 'reactor-loop-1';
+}
+
+// ── LIVE SSE MODE ──────────────────────────────────────
+// When served from Railway, RAILWAY_URL is empty string (same origin).
+// Override by setting window.COMPARISON_API_URL before this script runs.
+const API_BASE = window.COMPARISON_API_URL || '';
+
+function connectLiveSSE() {
+  const src = new EventSource(`${API_BASE}/comparison/stream?max_frames=500`);
+  document.getElementById('statSource').textContent = 'LIVE — RAILWAY';
+  document.getElementById('statSource').style.color = 'var(--cyan)';
+
+  src.onmessage = (e) => {
+    try {
+      const frame = JSON.parse(e.data);
+      if (frame.stage === 'end') { src.close(); return; }
+      if (frame.stage === 'config') return;
+      ui.applyFrame(frame);
+    } catch(_) {}
+  };
+
+  src.onerror = () => {
+    document.getElementById('statSource').textContent = 'SSE ERROR — FALLING BACK';
+    document.getElementById('statSource').style.color = 'var(--red)';
+    src.close();
+    // Fall back to mock
+    running = true;
+    document.getElementById('runBtn').textContent = '⏸ PAUSE';
+    document.getElementById('runBtn').classList.add('running');
+    tick();
+  };
+
+  return src;
+}
+
+let liveSSE = null;
+
+// Override toggleRun to support both modes
+const _originalToggle = toggleRun;
+window.toggleRun = function() {
+  if (API_BASE && !liveSSE) {
+    liveSSE = connectLiveSSE();
+    document.getElementById('runBtn').textContent = '⏸ PAUSE';
+    document.getElementById('runBtn').classList.add('running');
+    running = true;
+  } else if (liveSSE) {
+    liveSSE.close(); liveSSE = null;
+    running = false;
+    document.getElementById('runBtn').textContent = '▶ RUN';
+    document.getElementById('runBtn').classList.remove('running');
+  } else {
+    _originalToggle();
+  }
+};
+window.toggleRun.isMock = true;
+
+// Auto-start after brief delay
+setTimeout(() => {
+  if (API_BASE) {
+    liveSSE = connectLiveSSE();
+    document.getElementById('runBtn').textContent = '⏸ PAUSE';
+    document.getElementById('runBtn').classList.add('running');
+    running = true;
+  } else {
+    toggleRun();
+  }
+}, 600);
+
+// Resize chart on load
+window.addEventListener('load', () => ui.chart.resize());
+</script>
+</body>
+</html>
