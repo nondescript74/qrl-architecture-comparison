@@ -1034,9 +1034,11 @@
     <div class="col-body">
 
       <div class="card">
-        <div class="card-header">
-          <span>Pipeline Stages</span>
-          <span id="llmLatency" style="color:var(--amber);font-size:10px">warming up</span>
+        <div class="card-header help-target"
+         data-tip-title="LLM pipeline stages"
+         data-tip-text="This section shows how raw signals are turned into a single LLM answer: signal intake, prompt construction, model inference, answer generation, and action execution. The key limitation is that uncertainty is not preserved as an explicit structured object across stages.">
+         <span class="help-inline">PIPELINE STAGES <span class="help-icon">?</span></span>
+         <span id="llmLatency" style="color:var(--amber);font-size:10px">warming</span>
         </div>
         <div class="card-body">
           <div class="pipeline-stages">
@@ -1084,9 +1086,11 @@
       </div>
 
       <div class="card">
-        <div class="card-header">
-          <span>Current Answer</span>
-          <span style="color:var(--text-dim);font-size:9px">hypothesis_count = 1</span>
+        <div class="card-header help-target"
+         data-tip-title="Current answer"
+         data-tip-text="This is the single label produced by the LLM-only system at the current step. It is easy to read, but it also reveals the core limitation: the system emits one conclusion rather than maintaining a ranked set of live alternatives.">
+         <span class="help-inline">CURRENT ANSWER <span class="help-icon">?</span></span>
+         <span style="color:var(--text-dim);font-size:9px">hypothesis_count = 1</span>
         </div>
         <div class="card-body">
           <div class="llm-output" id="llmOutputBox">
@@ -1103,7 +1107,11 @@
       </div>
 
       <div class="card">
-        <div class="card-header"><span>Failure Modes</span></div>
+        <div class="card-header help-target"
+         data-tip-title="Failure modes"
+         data-tip-text="These are structural weaknesses of an LLM-only decision surface in dynamic environments. The point is not that LLMs are useless, but that they are being asked to do state-tracking work without explicitly representing competing hypotheses, evolving probabilities, or persistent uncertainty.">
+         <span class="help-inline">FAILURE MODES <span class="help-icon">?</span></span>
+        </div>
         <div class="card-body">
           <div class="failure-modes">
             <div class="failure-row active" id="fm0">
@@ -1151,9 +1159,11 @@
     <div class="col-body">
 
       <div class="card">
-        <div class="card-header">
-          <span>Pipeline Stages</span>
-          <span id="decLatency" style="color:var(--cyan);font-size:10px">warming up</span>
+        <div class="card-header help-target"
+         data-tip-title="Decision stages"
+         data-tip-text="This pipeline converts signals into encoded state, retrieves similar historical structures, updates a live hypothesis set, and ranks actions. The difference is that uncertainty remains explicit throughout the process instead of disappearing inside one output.">
+         <span class="help-inline">PIPELINE STAGES <span class="help-icon">?</span></span>
+         <span id="decLatency" style="color:var(--cyan);font-size:10px">warming</span>
         </div>
         <div class="card-body">
           <div class="pipeline-stages">
@@ -1201,9 +1211,11 @@
       </div>
 
       <div class="card" id="hypCard">
-        <div class="card-header">
-          <span>Live Hypotheses</span>
-          <span style="font-size:9px;color:var(--text-dim)">H = <span id="entropyInline">awaiting</span> bits</span>
+        <div class="card-header help-target"
+         data-tip-title="Live hypotheses"
+         data-tip-text="This section shows the competing regime interpretations being maintained right now. Instead of forcing one conclusion, the system keeps multiple candidates alive with weights, allowing it to adapt as evidence changes.">
+         <span class="help-inline">LIVE HYPOTHESES <span class="help-icon">?</span></span>
+         <span style="font-size:9px;color:var(--text-dim)">H = <span id="entropyInline">—</span> bits</span>
         </div>
         <div class="card-body">
           <div class="hyp-list" id="hypList"></div>
@@ -1213,7 +1225,11 @@
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
 
         <div class="card">
-          <div class="card-header"><span>Uncertainty</span></div>
+          <div class="card-header help-target"
+           data-tip-title="Uncertainty"
+           data-tip-text="This is Shannon entropy over the current hypothesis set. Higher entropy means the system is explicitly preserving multiple plausible states. Lower entropy means evidence has concentrated probability into fewer paths.">
+          <span class="help-inline">UNCERTAINTY <span class="help-icon">?</span></span>
+          </div>
           <div class="card-body">
             <div class="entropy-wrap">
               <div class="entropy-gauge">
@@ -1236,7 +1252,11 @@
         </div>
 
         <div class="card">
-          <div class="card-header"><span>Ranked Actions</span></div>
+          <div class="card-header help-target"
+           data-tip-title="Ranked actions"
+           data-tip-text="These are the actions evaluated against the current state distribution. Instead of jumping directly from one model answer to one action, the architecture scores multiple candidate actions and exposes confidence intervals.">
+           <span class="help-inline">RANKED ACTIONS <span class="help-icon">?</span></span>
+          </div>
           <div class="card-body">
             <div class="action-list" id="actionList"></div>
           </div>
@@ -1245,7 +1265,11 @@
       </div>
 
       <div class="card">
-        <div class="card-header"><span>Resilient Properties</span></div>
+        <div class="card-header help-target"
+         data-tip-title="Resilient properties"
+         data-tip-text="These are the architectural strengths of the system: explicit competing hypotheses, historical retrieval, tracked state transitions, ranked actions, and inspectable reasoning surfaces. This is what makes the system more robust under uncertainty.">
+         <span class="help-inline">RESILIENT PROPERTIES <span class="help-icon">?</span></span>
+        </div>
         <div class="card-body">
           <div class="failure-modes">
             <div class="failure-row active" style="border-color:rgba(0,135,90,0.18);background:rgba(0,135,90,0.05);">
@@ -2024,6 +2048,45 @@ setTimeout(() => {
 }, 600);
 
 window.addEventListener('load', () => ui.chart.resize());
+     const globalTooltip = document.getElementById('globalTooltip');
+const globalTooltipTitle = document.getElementById('globalTooltipTitle');
+const globalTooltipText = document.getElementById('globalTooltipText');
+
+function positionTooltip(e) {
+  const pad = 18;
+  const rect = globalTooltip.getBoundingClientRect();
+  let x = e.clientX + 18;
+  let y = e.clientY + 18;
+
+  if (x + rect.width + pad > window.innerWidth) {
+    x = window.innerWidth - rect.width - pad;
+  }
+  if (y + rect.height + pad > window.innerHeight) {
+    y = e.clientY - rect.height - 18;
+  }
+  if (y < pad) y = pad;
+  if (x < pad) x = pad;
+
+  globalTooltip.style.left = `${x}px`;
+  globalTooltip.style.top = `${y}px`;
+}
+
+document.querySelectorAll('.help-target').forEach((el) => {
+  el.addEventListener('mouseenter', (e) => {
+    globalTooltipTitle.textContent = el.dataset.tipTitle || '';
+    globalTooltipText.textContent = el.dataset.tipText || '';
+    globalTooltip.classList.add('show');
+    positionTooltip(e);
+  });
+
+  el.addEventListener('mousemove', (e) => {
+    positionTooltip(e);
+  });
+
+  el.addEventListener('mouseleave', () => {
+    globalTooltip.classList.remove('show');
+  });
+});
 </script>
 </body>
 </html>
