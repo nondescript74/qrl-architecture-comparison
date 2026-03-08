@@ -1136,10 +1136,12 @@
   <!-- ═══ DECISION ARCHITECTURE COLUMN ═══ -->
   <div class="dec-col" id="decCol">
     <div class="col-header">
-      <div class="col-header-left">
-        <div class="col-name">Decision Architecture</div>
-        <div class="col-desc">Competing hypotheses maintained. Uncertainty preserved until evidence accumulates.</div>
-      </div>
+         <div class="col-header-left help-target"
+           data-tip-title="LLM-only system"
+           data-tip-text="This side represents the common pattern of prompt in, answer out. It is simple and useful, but it does not explicitly preserve competing interpretations over time. Under uncertainty, disagreement and regime transitions are often compressed too early into one label.">
+           <div class="col-name help-inline">LLM-Only System <span class="help-icon">?</span></div>
+           <div class="col-desc">Single inference over bounded context. Uncertainty is compressed into one output.</div>
+         </div>
       <div class="col-indicator">
         <div class="ind-dot cyan pulse" id="decDot"></div>
         <span style="font-size:9px;color:var(--text-dim);letter-spacing:.06em">TRACKING</span>
