@@ -3,316 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>MHT-FAISS Architecture Demo</title>
 
-<style>
-:root{
- --bg:#f6f7f8;
- --panel:#ffffff;
- --border:#e3e5e7;
- --text:#1f2933;
- --muted:#6b7785;
- --cyan:#0072ff;
- --green:#00875a;
- --amber:#ff8f00;
- --mono: ui-monospace, SFMono-Regular, Menlo, monospace;
- --sans: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-}
-
-body{
- margin:0;
- background:var(--bg);
- font-family:var(--sans);
- color:var(--text);
-}
-
-header{
- padding:20px 28px;
- border-bottom:1px solid var(--border);
- background:white;
-}
-
-.header-title{
- font-size:20px;
- font-weight:600;
-}
-
-.header-sub{
- font-size:13px;
- color:var(--muted);
- margin-top:4px;
-}
-
-.container{
- display:flex;
- gap:24px;
- padding:24px;
-}
-
-.column{
- flex:1;
- background:var(--panel);
- border:1px solid var(--border);
- border-radius:8px;
- padding:18px;
-}
-
-.col-name{
- font-weight:600;
- font-size:15px;
- margin-bottom:4px;
-}
-
-.col-desc{
- font-size:12px;
- color:var(--muted);
- margin-bottom:14px;
-}
-
-.card{
- border:1px solid var(--border);
- border-radius:6px;
- margin-bottom:14px;
- background:#fff;
-}
-
-.card-header{
- padding:10px 12px;
- font-size:12px;
- border-bottom:1px solid var(--border);
- font-weight:600;
- display:flex;
- justify-content:space-between;
- align-items:center;
-}
-
-.card-body{
- padding:12px;
- font-size:12px;
- color:var(--muted);
- line-height:1.55;
-}
-
-.signal-chip{
- display:inline-block;
- padding:4px 8px;
- border-radius:999px;
- background:#f3f6f8;
- border:1px solid var(--border);
- margin-right:6px;
- margin-bottom:6px;
- font-family:var(--mono);
- font-size:11px;
-}
-
-.answer-pill{
- display:inline-flex;
- align-items:center;
- padding:8px 12px;
- border-radius:999px;
- background:rgba(255,143,0,0.1);
- color:var(--amber);
- border:1px solid rgba(255,143,0,0.2);
- font-weight:600;
-}
-
-.answer-sub{
- margin-top:10px;
- font-size:11px;
- color:var(--muted);
-}
-
-.fail-list,
-.prop-list{
- display:grid;
- gap:8px;
-}
-
-.fail-item,
-.prop-item{
- padding:8px 10px;
- border-radius:6px;
- border:1px solid var(--border);
- background:#fafbfc;
-}
-
-.prop-item{
- background:rgba(0,135,90,0.04);
- border-color:rgba(0,135,90,0.15);
- color:#175d49;
-}
-
-.hypothesis-list{
- display:grid;
- gap:10px;
-}
-
-.hyp-row{
- display:grid;
- grid-template-columns: 130px 1fr 52px;
- align-items:center;
- gap:10px;
-}
-
-.hyp-name{
- font-size:12px;
- color:var(--text);
-}
-
-.hyp-track{
- height:10px;
- border-radius:999px;
- background:#eef1f4;
- overflow:hidden;
- border:1px solid var(--border);
-}
-
-.hyp-fill{
- height:100%;
- width:0%;
- background:linear-gradient(90deg, var(--cyan), var(--green));
- transition:width 0.45s ease;
-}
-
-.hyp-val{
- font-family:var(--mono);
- font-size:11px;
- color:var(--muted);
- text-align:right;
-}
-
-.hyp-note{
- margin-top:10px;
- font-size:11px;
- color:var(--muted);
-}
-
-.action-list{
- display:grid;
- gap:8px;
-}
-
-.action-row{
- display:flex;
- justify-content:space-between;
- align-items:center;
- padding:8px 10px;
- border:1px solid var(--border);
- border-radius:6px;
- background:#fafbfc;
-}
-
-.action-rank{
- font-family:var(--mono);
- color:var(--muted);
- margin-right:10px;
-}
-
-.action-left{
- display:flex;
- align-items:center;
- color:var(--text);
-}
-
-.action-score{
- font-family:var(--mono);
- color:var(--green);
-}
-
-/* ─────────────────────────────
-   HOVER HELP
-───────────────────────────── */
-.help-target{
- cursor:help;
-}
-
-.help-inline{
- display:inline-flex;
- align-items:center;
- gap:6px;
-}
-
-.help-icon{
- width:14px;
- height:14px;
- border-radius:50%;
- border:1px solid var(--cyan);
- color:var(--cyan);
- font-size:9px;
- display:flex;
- align-items:center;
- justify-content:center;
- font-family:var(--mono);
-}
-
-/* ─────────────────────────────
-   TOOLTIP
-───────────────────────────── */
-#tooltip{
- position:fixed;
- left:0;
- top:0;
- width:340px;
- background:white;
- border:1px solid var(--border);
- border-radius:6px;
- padding:14px;
- box-shadow:0 10px 26px rgba(0,0,0,0.12);
- pointer-events:none;
- opacity:0;
- transform:translateY(6px);
- transition:opacity .15s, transform .15s;
- z-index:1000;
-}
-
-#tooltip.show{
- opacity:1;
- transform:translateY(0);
-}
-
-#tooltipTitle{
- font-family:var(--mono);
- font-size:10px;
- letter-spacing:.12em;
- text-transform:uppercase;
- color:var(--cyan);
- margin-bottom:6px;
-}
-
-#tooltipText{
- font-size:12px;
- line-height:1.55;
-}
-
-/* ─────────────────────────────
-   HYPOTHESIS EVOLUTION
-───────────────────────────── */
-.hyp-evolution{
- display:grid;
- gap:10px;
-}
-
-.hyp-line{
- display:grid;
- grid-template-columns:130px 1fr 52px;
- align-items:center;
- gap:10px;
-}
-
-@media (max-width: 980px){
- .container{
-  flex-direction:column;
- }
-}
-</style>
+<link rel="stylesheet" href="styles.css">
 </head>
 
 <body>
 
 <header class="help-target"
  data-tip-title="Architecture comparison"
- data-tip-text="This demo compares two approaches processing the same signal stream. The left side represents a traditional LLM inference pipeline that collapses uncertainty to one answer. The right side represents a decision architecture preserving multiple hypotheses and evaluating them over time.">
+ data-tip-text="This demo compares a one-shot LLM inference surface with a probabilistic decision architecture that preserves competing hypotheses.">
 
   <div class="header-title help-inline">
     MHT-FAISS Live Research Console
@@ -326,356 +26,122 @@ header{
 
 <div class="container">
 
-  <!-- LLM SIDE -->
-  <div class="column">
+<!-- LEFT SIDE -->
+<div class="column">
 
-    <div class="col-name help-target"
-     data-tip-title="LLM-only pipeline"
-     data-tip-text="This represents a conventional generative inference surface: data is transformed into a prompt, processed by a model, and collapsed into one answer. It is fast and flexible but does not explicitly track competing interpretations over time.">
-      <div class="help-inline">
-        LLM-Only System
-        <span class="help-icon">?</span>
-      </div>
-    </div>
+<div class="col-name help-target"
+ data-tip-title="LLM-only pipeline"
+ data-tip-text="A typical LLM architecture converts signals to prompt context and emits one answer.">
 
-    <div class="col-desc">
-      Single inference per tick. Uncertainty is compressed into one output.
-    </div>
-
-    <div class="card help-target"
-     data-tip-title="Pipeline stages"
-     data-tip-text="Signals are transformed into prompt text, sent to a large language model, and converted into a single label or instruction. No persistent hypothesis tracking exists between ticks.">
-      <div class="card-header">
-        <span class="help-inline">Pipeline Stages <span class="help-icon">?</span></span>
-      </div>
-      <div class="card-body">
-        <span class="signal-chip">Signal</span>
-        <span class="signal-chip">Prompt</span>
-        <span class="signal-chip">Model</span>
-        <span class="signal-chip">Answer</span>
-      </div>
-    </div>
-
-    <div class="card help-target"
-     data-tip-title="Single answer output"
-     data-tip-text="The system emits one interpretation for the current moment. Competing explanations are implicitly discarded rather than maintained.">
-      <div class="card-header">
-        <span class="help-inline">Current Answer <span class="help-icon">?</span></span>
-      </div>
-      <div class="card-body">
-        <div class="answer-pill" id="llmAnswer">BULLISH TREND</div>
-        <div class="answer-sub" id="llmAnswerSub">One label replaces uncertainty with a single decision surface.</div>
-      </div>
-    </div>
-
-    <div class="card help-target"
-     data-tip-title="Failure modes"
-     data-tip-text="Under noise, regime shifts, or delayed signals, systems that compress uncertainty early can oscillate or misinterpret context because alternative hypotheses were not preserved.">
-      <div class="card-header">
-        <span class="help-inline">Failure Modes <span class="help-icon">?</span></span>
-      </div>
-      <div class="card-body">
-        <div class="fail-list">
-          <div class="fail-item">Prompt context limits</div>
-          <div class="fail-item">No explicit competing hypotheses</div>
-          <div class="fail-item">No persistent probabilistic state</div>
-          <div class="fail-item">Regime shifts often appear as abrupt answer flips</div>
-        </div>
-      </div>
-    </div>
-
-  </div>
-
-  <!-- DECISION ARCHITECTURE -->
-  <div class="column">
-
-    <div class="col-name help-target"
-     data-tip-title="Decision architecture"
-     data-tip-text="Instead of collapsing uncertainty immediately, this architecture preserves competing hypotheses. Evidence updates their probabilities until one dominates.">
-      <div class="help-inline">
-        Decision Architecture
-        <span class="help-icon">?</span>
-      </div>
-    </div>
-
-    <div class="col-desc">
-      Competing hypotheses maintained, updated, and scored.
-    </div>
-
-    <div class="card help-target"
-     data-tip-title="Processing pipeline"
-     data-tip-text="Signals are encoded to latent state, similar historical patterns are retrieved using ANN search, hypotheses evolve through Bayesian updates, and actions are ranked before execution.">
-      <div class="card-header">
-        <span class="help-inline">Pipeline Stages <span class="help-icon">?</span></span>
-      </div>
-      <div class="card-body">
-        <span class="signal-chip">Signal</span>
-        <span class="signal-chip">State Encoder</span>
-        <span class="signal-chip">Retrieval</span>
-        <span class="signal-chip">Hypothesis Update</span>
-        <span class="signal-chip">Decision Ranking</span>
-      </div>
-    </div>
-
-    <div class="card help-target"
-     data-tip-title="Live hypotheses"
-     data-tip-text="Multiple candidate explanations are maintained simultaneously. Each hypothesis has a probability weight and evolves as new evidence arrives.">
-      <div class="card-header">
-        <span class="help-inline">Live Hypotheses <span class="help-icon">?</span></span>
-      </div>
-      <div class="card-body">
-        <div class="hypothesis-list">
-          <div class="hyp-row">
-            <div class="hyp-name">Trend continuation</div>
-            <div class="hyp-track"><div class="hyp-fill" id="hypStatic0" style="width:42%"></div></div>
-            <div class="hyp-val" id="hypStaticVal0">42%</div>
-          </div>
-          <div class="hyp-row">
-            <div class="hyp-name">Volatility spike</div>
-            <div class="hyp-track"><div class="hyp-fill" id="hypStatic1" style="width:31%"></div></div>
-            <div class="hyp-val" id="hypStaticVal1">31%</div>
-          </div>
-          <div class="hyp-row">
-            <div class="hyp-name">Mean reversion</div>
-            <div class="hyp-track"><div class="hyp-fill" id="hypStatic2" style="width:27%"></div></div>
-            <div class="hyp-val" id="hypStaticVal2">27%</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="card help-target"
-     data-tip-title="Hypothesis evolution"
-     data-tip-text="This view shows how competing hypotheses change as new evidence arrives. Instead of replacing the old answer each tick, the system updates probability mass across multiple live explanations. That is the core behavioral difference from a one-shot LLM output.">
-      <div class="card-header">
-        <span class="help-inline">Hypothesis Evolution <span class="help-icon">?</span></span>
-      </div>
-      <div class="card-body">
-        <div class="hyp-evolution" id="hypEvolution">
-          <div class="hyp-line">
-            <div class="hyp-name">Trend continuation</div>
-            <div class="hyp-track"><div class="hyp-fill" id="hypFill0"></div></div>
-            <div class="hyp-val" id="hypVal0">42%</div>
-          </div>
-
-          <div class="hyp-line">
-            <div class="hyp-name">Volatility spike</div>
-            <div class="hyp-track"><div class="hyp-fill" id="hypFill1"></div></div>
-            <div class="hyp-val" id="hypVal1">31%</div>
-          </div>
-
-          <div class="hyp-line">
-            <div class="hyp-name">Mean reversion</div>
-            <div class="hyp-track"><div class="hyp-fill" id="hypFill2"></div></div>
-            <div class="hyp-val" id="hypVal2">27%</div>
-          </div>
-        </div>
-
-        <div class="hyp-note" id="hypNote">
-          Evidence is shifting, but uncertainty remains explicit.
-        </div>
-      </div>
-    </div>
-
-    <div class="card help-target"
-     data-tip-title="Decision evaluation"
-     data-tip-text="Instead of executing immediately, candidate actions are evaluated against the current hypothesis distribution. This produces ranked actions with confidence levels.">
-      <div class="card-header">
-        <span class="help-inline">Ranked Actions <span class="help-icon">?</span></span>
-      </div>
-      <div class="card-body">
-        <div class="action-list" id="actionList">
-          <div class="action-row">
-            <div class="action-left"><span class="action-rank">1.</span> Hold / wait for confirmation</div>
-            <div class="action-score">0.81</div>
-          </div>
-          <div class="action-row">
-            <div class="action-left"><span class="action-rank">2.</span> Long breakout</div>
-            <div class="action-score">0.64</div>
-          </div>
-          <div class="action-row">
-            <div class="action-left"><span class="action-rank">3.</span> Reduce exposure</div>
-            <div class="action-score">0.46</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="card help-target"
-     data-tip-title="Resilient properties"
-     data-tip-text="These are the architectural strengths of the system: explicit competing hypotheses, historical retrieval, tracked state transitions, ranked actions, and inspectable reasoning surfaces.">
-      <div class="card-header">
-        <span class="help-inline">Resilient Properties <span class="help-icon">?</span></span>
-      </div>
-      <div class="card-body">
-        <div class="prop-list">
-          <div class="prop-item">Explicit competing hypotheses</div>
-          <div class="prop-item">Historical retrieval before commitment</div>
-          <div class="prop-item">Smooth probabilistic evolution over time</div>
-          <div class="prop-item">Ranked action surface instead of one-shot output</div>
-        </div>
-      </div>
-    </div>
-
-  </div>
+<div class="help-inline">
+LLM-Only System
+<span class="help-icon">?</span>
 </div>
+</div>
+
+<div class="col-desc">
+Single inference per tick. Uncertainty collapses to one label.
+</div>
+
+<div class="card">
+<div class="card-header">Current Answer</div>
+<div class="card-body">
+
+<div id="llmAnswer" class="answer-pill">
+BULLISH TREND
+</div>
+
+<div id="llmAnswerSub" class="answer-sub">
+LLM compresses the stream into one label.
+</div>
+
+</div>
+</div>
+
+<div class="card">
+<div class="card-header">LLM Answer Timeline</div>
+
+<div class="card-body">
+
+<canvas id="llmTimelineChart"></canvas>
+
+<div id="llmTimelineNote" class="llm-note">
+LLM emits one label at a time.
+</div>
+
+</div>
+</div>
+
+</div>
+
+
+<!-- RIGHT SIDE -->
+<div class="column">
+
+<div class="col-name">
+Decision Architecture
+</div>
+
+<div class="col-desc">
+Competing hypotheses maintained continuously.
+</div>
+
+<div class="card">
+<div class="card-header">Hypothesis Evolution</div>
+
+<div class="card-body">
+
+<div class="hyp-line">
+<div class="hyp-name">Trend continuation</div>
+<div class="hyp-track"><div id="hypFill0" class="hyp-fill"></div></div>
+<div id="hypVal0" class="hyp-val">42%</div>
+</div>
+
+<div class="hyp-line">
+<div class="hyp-name">Volatility spike</div>
+<div class="hyp-track"><div id="hypFill1" class="hyp-fill"></div></div>
+<div id="hypVal1" class="hyp-val">31%</div>
+</div>
+
+<div class="hyp-line">
+<div class="hyp-name">Mean reversion</div>
+<div class="hyp-track"><div id="hypFill2" class="hyp-fill"></div></div>
+<div id="hypVal2" class="hyp-val">27%</div>
+</div>
+
+<div id="hypNote" class="hyp-note">
+Evidence evolving across multiple paths.
+</div>
+
+</div>
+</div>
+
+
+<div class="card">
+<div class="card-header">Hypothesis History</div>
+
+<div class="card-body">
+
+<canvas id="hypHistoryChart"></canvas>
+
+</div>
+</div>
+
+</div>
+
+</div>
+
 
 <div id="tooltip">
-  <div id="tooltipTitle"></div>
-  <div id="tooltipText"></div>
+<div id="tooltipTitle"></div>
+<div id="tooltipText"></div>
 </div>
 
-<script>
-const tooltip = document.getElementById("tooltip");
-const tTitle = document.getElementById("tooltipTitle");
-const tText = document.getElementById("tooltipText");
 
-function moveTooltip(e){
-  const pad = 20;
-  const rect = tooltip.getBoundingClientRect();
-
-  let x = e.clientX + 16;
-  let y = e.clientY + 16;
-
-  if (x + rect.width + pad > window.innerWidth) {
-    x = window.innerWidth - rect.width - pad;
-  }
-
-  if (y + rect.height + pad > window.innerHeight) {
-    y = e.clientY - rect.height - 20;
-  }
-
-  tooltip.style.left = x + "px";
-  tooltip.style.top = y + "px";
-}
-
-document.querySelectorAll(".help-target").forEach(el => {
-  el.addEventListener("mouseenter", e => {
-    tTitle.textContent = el.dataset.tipTitle || "";
-    tText.textContent = el.dataset.tipText || "";
-    tooltip.classList.add("show");
-    moveTooltip(e);
-  });
-
-  el.addEventListener("mousemove", moveTooltip);
-
-  el.addEventListener("mouseleave", () => {
-    tooltip.classList.remove("show");
-  });
-});
-
-/* ─────────────────────────────
-   HYPOTHESIS EVOLUTION
-───────────────────────────── */
-const hypState = {
-  labels: ["Trend continuation", "Volatility spike", "Mean reversion"],
-  values: [42, 31, 27]
-};
-
-function normalizeHyp(values) {
-  const sum = values.reduce((a, b) => a + b, 0);
-  return values.map(v => Math.round((v / sum) * 100));
-}
-
-function updateStaticHypothesisView(vals) {
-  vals.forEach((v, i) => {
-    const fill = document.getElementById(`hypStatic${i}`);
-    const label = document.getElementById(`hypStaticVal${i}`);
-    if (fill) fill.style.width = `${v}%`;
-    if (label) label.textContent = `${v}%`;
-  });
-}
-
-function updateActions(vals) {
-  const [trend, vol, mean] = vals;
-  const rows = [
-    { name: trend >= mean ? "Hold / wait for confirmation" : "Fade extension", score: (0.55 + trend / 200).toFixed(2) },
-    { name: trend > vol ? "Long breakout" : "Hedge / volatility defense", score: (0.40 + Math.max(trend, vol) / 250).toFixed(2) },
-    { name: mean > trend ? "Mean reversion entry" : "Reduce exposure", score: (0.28 + mean / 300).toFixed(2) }
-  ];
-
-  const actionList = document.getElementById("actionList");
-  actionList.innerHTML = rows.map((r, i) => `
-    <div class="action-row">
-      <div class="action-left"><span class="action-rank">${i + 1}.</span> ${r.name}</div>
-      <div class="action-score">${r.score}</div>
-    </div>
-  `).join("");
-}
-
-function updateLLMAnswer(vals) {
-  const max = Math.max(...vals);
-  const idx = vals.indexOf(max);
-  const answerEl = document.getElementById("llmAnswer");
-  const subEl = document.getElementById("llmAnswerSub");
-
-  const answers = [
-    ["BULLISH TREND", "The LLM surface compresses the stream into one dominant directional label."],
-    ["VOLATILITY EVENT", "The LLM surface flips to a volatility-centric interpretation."],
-    ["MEAN REVERSION", "The LLM surface now emits a reversion narrative as the single answer."]
-  ];
-
-  if (answerEl) answerEl.textContent = answers[idx][0];
-  if (subEl) subEl.textContent = answers[idx][1];
-}
-
-function updateHypothesisEvolution() {
-  let vals = [...hypState.values];
-
-  vals = vals.map(v => Math.max(8, v + Math.round((Math.random() - 0.5) * 10)));
-
-  if (Math.random() < 0.18) {
-    const winner = Math.floor(Math.random() * vals.length);
-    vals[winner] += 10 + Math.floor(Math.random() * 10);
-  }
-
-  vals = normalizeHyp(vals);
-
-  const diff = 100 - vals.reduce((a, b) => a + b, 0);
-  vals[0] += diff;
-
-  hypState.values = vals;
-
-  vals.forEach((v, i) => {
-    const fill = document.getElementById(`hypFill${i}`);
-    const label = document.getElementById(`hypVal${i}`);
-    if (fill) fill.style.width = `${v}%`;
-    if (label) label.textContent = `${v}%`;
-  });
-
-  updateStaticHypothesisView(vals);
-  updateActions(vals);
-  updateLLMAnswer(vals);
-
-  const topIdx = vals.indexOf(Math.max(...vals));
-  const notes = [
-    "Trend continuation currently leads, but alternatives remain live.",
-    "Volatility risk is rising; the system is preserving multiple paths.",
-    "Mean reversion is gaining weight as incoming evidence shifts.",
-    "Probability mass is redistributing without collapsing to one answer.",
-    "Evidence is shifting, but uncertainty remains explicit."
-  ];
-
-  const note = document.getElementById("hypNote");
-  if (note) {
-    if (topIdx === 0) note.textContent = notes[0];
-    else if (topIdx === 1) note.textContent = notes[1];
-    else if (topIdx === 2) note.textContent = notes[2];
-
-    if (Math.random() < 0.25) {
-      note.textContent = notes[3 + Math.floor(Math.random() * 2)];
-    }
-  }
-}
-
-hypState.values.forEach((v, i) => {
-  const fill = document.getElementById(`hypFill${i}`);
-  if (fill) fill.style.width = `${v}%`;
-});
-
-updateHypothesisEvolution();
-setInterval(updateHypothesisEvolution, 1400);
-</script>
+<script src="tooltip.js"></script>
+<script src="hypothesisEngine.js"></script>
+<script src="historyChart.js"></script>
+<script src="demoController.js"></script>
 
 </body>
 </html>
