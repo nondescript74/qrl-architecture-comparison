@@ -75,18 +75,31 @@ function mapBackendHypotheses(frame) {
     const label = (h.label || "").toLowerCase();
     const pct = Math.round((h.weight || 0) * 100);
 
-    if (label.includes("bull") || label.includes("trend")) {
+    if (
+      label.includes("bull") ||
+      label.includes("bear") ||
+      label.includes("trend") ||
+      label.includes("shift")
+    ) {
       buckets.trend += pct;
-    } else if (label.includes("vol")) {
+    } else if (
+      label.includes("vol") ||
+      label.includes("fault") ||
+      label.includes("anomaly")
+    ) {
       buckets.vol += pct;
-    } else if (label.includes("mean") || label.includes("revert")) {
+    } else if (
+      label.includes("mean") ||
+      label.includes("revert") ||
+      label.includes("recovery") ||
+      label.includes("nominal")
+    ) {
       buckets.mean += pct;
     }
   }
 
   let vals = [buckets.trend, buckets.vol, buckets.mean];
   const total = vals.reduce((a, b) => a + b, 0);
-
   if (total === 0) return null;
 
   vals = vals.map(v => Math.round((v / total) * 100));
