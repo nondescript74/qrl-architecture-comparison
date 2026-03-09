@@ -7,6 +7,34 @@ let es = null;
 
 let reconnectTimer = null;
 let hasReceivedFrame = false;
+let lastFrameTimestamp = null
+let staleCheckTimer = null
+
+function updateLastFrameTime(){
+
+  const el = document.getElementById("lastFrameTime")
+  if(!el) return
+
+  const now = Date.now()
+
+  if(!lastFrameTimestamp){
+    el.textContent = "last frame — waiting"
+    return
+  }
+
+  const delta = Math.floor((now - lastFrameTimestamp)/1000)
+
+  const date = new Date(lastFrameTimestamp)
+  const time = date.toLocaleTimeString()
+
+  el.textContent = `last frame ${time} · ${delta}s ago`
+
+  if(delta > 6){
+    el.classList.add("frame-stale")
+  }else{
+    el.classList.remove("frame-stale")
+  }
+}
 
 function setStreamStatus(state, detail = "") {
   const el = document.getElementById("streamStatus");
