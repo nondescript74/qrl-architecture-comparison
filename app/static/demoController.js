@@ -374,4 +374,5 @@ pushLLMHistory(0);
 drawLLMTimelineChart();
 drawHistory();
 setStreamStatus("reconnecting", "starting");
+staleCheckTimer = setInterval(updateLastFrameTime,1000)
 connectStream();
