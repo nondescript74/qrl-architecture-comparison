@@ -1,4 +1,4 @@
-import { pushHistory, drawHistory } from "./historyChart.js";
+my import { pushHistory, drawHistory } from "./historyChart.js";
 
 const API_BASE = window.location.origin;
 const STREAM_URL = `${API_BASE}/comparison/stream?max_frames=500`;
@@ -339,4 +339,5 @@ window.addEventListener("resize", () => {
 pushLLMHistory(0);
 drawLLMTimelineChart();
 drawHistory();
+setStreamStatus("reconnecting", "starting");
 connectStream();
