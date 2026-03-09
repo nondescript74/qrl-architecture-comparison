@@ -1,161 +1,329 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MHT-FAISS Architecture Demo</title>
-  <link rel="stylesheet" href="/static/styles.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MHT-FAISS Live Research Console</title>
+  <link rel="stylesheet" href="/static/styles.css" />
 </head>
-
 <body>
 
-<header class="help-target"
-  data-tip-title="Architecture comparison"
-  data-tip-text="This demo compares a one-shot LLM inference surface against a multi-hypothesis tracking decision engine. The left side collapses uncertainty to one answer. The right side preserves competing hypotheses and updates them over time.">
+  <header class="page-header help-target"
+    data-tip-title="Architecture comparison"
+    data-tip-text="This demo compares a one-shot LLM inference surface against a multi-hypothesis tracking decision engine. The left side collapses uncertainty to one answer. The right side preserves competing hypotheses and updates them over time.">
 
-  <div class="header-title help-inline">
-    MHT-FAISS Live Research Console
-    <span class="help-icon">?</span>
-  </div>
-
-  <div class="header-sub">
-    Two systems processing the same stream — collapse uncertainty or preserve it.
-  </div>
-
-  <div class="status-row">
-    <div id="streamStatus" class="stream-badge stream-live">
-      LIVE SSE
+    <div class="header-title-row">
+      <div class="header-title help-inline">
+        MHT-FAISS Live Research Console
+        <span class="help-icon">?</span>
+      </div>
     </div>
 
-    <div id="lastFrameTime" class="frame-time">
-      last frame — waiting
+    <div class="header-sub">
+      Two systems processing the same asynchronous signal stream — one collapses uncertainty, the other preserves competing hypotheses until evidence converges.
     </div>
 
-    <div id="latencyMeter" class="latency-meter latency-good">
-      <span class="latency-label">latency</span>
-      <span id="latencyValue">— ms</span>
-      <span id="latencyAvg" class="latency-avg">avg —</span>
+    <div class="status-row">
+      <div id="streamStatus" class="stream-badge stream-live">
+        LIVE SSE
+      </div>
+
+      <div id="lastFrameTime" class="frame-time">
+        last frame — waiting
+      </div>
+
+      <div id="latencyMeter" class="latency-meter latency-good">
+        <span class="latency-label">latency</span>
+        <span id="latencyValue">— ms</span>
+        <span id="latencyAvg" class="latency-avg">avg —</span>
+      </div>
     </div>
+  </header>
+
+  <main class="page-shell">
+
+    <section class="card hero-explainer">
+      <div class="card-header">Why this matters</div>
+      <div class="card-body">
+        In the fog of noise, systems that commit too early can misread regime change. This console compares a one-shot LLM surface with a tracked decision architecture that preserves competing hypotheses, updates them through time, and ranks actions before commitment.
+      </div>
+    </section>
+
+    <div class="container">
+
+      <!-- LEFT SIDE -->
+      <section class="column">
+        <div class="col-name help-target"
+          data-tip-title="LLM-only pipeline"
+          data-tip-text="This represents a conventional generative inference surface: data is transformed into a prompt, processed by a model, and collapsed into one answer. It is useful, but it does not explicitly preserve competing interpretations over time.">
+          <div class="help-inline">
+            LLM-Only System
+            <span class="help-icon">?</span>
+          </div>
+        </div>
+
+        <div class="col-desc">
+          Single inference per tick. Uncertainty is compressed into one output.
+        </div>
+
+        <div class="card help-target"
+          data-tip-title="Pipeline stages"
+          data-tip-text="Signals are transformed into prompt text, sent to a large language model, and converted into a single label or instruction. No persistent hypothesis tracking exists between ticks.">
+          <div class="card-header">
+            <span class="help-inline">Pipeline Stages <span class="help-icon">?</span></span>
+          </div>
+          <div class="card-body">
+            <span class="signal-chip">Signal</span>
+            <span class="signal-chip">Prompt</span>
+            <span class="signal-chip">Model</span>
+            <span class="signal-chip">Answer</span>
+          </div>
+        </div>
+
+        <div class="card help-target"
+          data-tip-title="Current LLM output"
+          data-tip-text="The system emits one interpretation for the current moment. Competing explanations are implicitly discarded rather than maintained.">
+          <div class="card-header">
+            <span class="help-inline">Current LLM Output <span class="help-icon">?</span></span>
+          </div>
+          <div class="card-body">
+            <div class="answer-pill" id="llmAnswer">BULLISH TREND</div>
+            <div class="answer-sub" id="llmAnswerSub">
+              One label replaces uncertainty with a single decision surface.
+            </div>
+          </div>
+        </div>
+
+        <div class="card help-target"
+          data-tip-title="LLM answer timeline"
+          data-tip-text="This view shows the LLM surface as a sequence of discrete output labels over time. Unlike the hypothesis chart on the right, this is not a probability distribution. It is a one-label-at-a-time surface that can flip abruptly when context shifts.">
+          <div class="card-header">
+            <span class="help-inline">LLM Answer Timeline <span class="help-icon">?</span></span>
+          </div>
+          <div class="card-body">
+            <div class="llm-timeline-wrap">
+              <canvas id="llmTimelineChart" width="720" height="180"></canvas>
+
+              <div class="llm-legend">
+                <div class="llm-key">
+                  <span class="llm-swatch llm-bull"></span>
+                  Bullish trend
+                </div>
+                <div class="llm-key">
+                  <span class="llm-swatch llm-vol"></span>
+                  Volatility event
+                </div>
+                <div class="llm-key">
+                  <span class="llm-swatch llm-mean"></span>
+                  Mean reversion
+                </div>
+              </div>
+
+              <div class="llm-note" id="llmTimelineNote">
+                The LLM emits one label at a time, so changes appear as answer flips rather than smooth uncertainty shifts.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card help-target"
+          data-tip-title="Failure modes"
+          data-tip-text="Under noise, regime shifts, or delayed signals, systems that compress uncertainty early can oscillate or misinterpret context because alternative hypotheses were not preserved.">
+          <div class="card-header">
+            <span class="help-inline">Failure Modes <span class="help-icon">?</span></span>
+          </div>
+          <div class="card-body">
+            <div class="fail-list">
+              <div class="fail-item">Prompt context limits</div>
+              <div class="fail-item">No explicit competing hypotheses</div>
+              <div class="fail-item">No persistent probabilistic state</div>
+              <div class="fail-item">Regime shifts often appear as abrupt answer flips</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- RIGHT SIDE -->
+      <section class="column">
+        <div class="col-name help-target"
+          data-tip-title="Decision architecture"
+          data-tip-text="Instead of collapsing uncertainty immediately, this architecture preserves competing hypotheses. Evidence updates their probabilities until one dominates.">
+          <div class="help-inline">
+            Decision Architecture
+            <span class="help-icon">?</span>
+          </div>
+        </div>
+
+        <div class="col-desc">
+          Competing hypotheses maintained, updated, and scored before commitment.
+        </div>
+
+        <div class="card help-target"
+          data-tip-title="Processing pipeline"
+          data-tip-text="Signals are encoded to latent state, similar historical patterns are retrieved using ANN search, hypotheses evolve through Bayesian updates, and actions are ranked before execution.">
+          <div class="card-header">
+            <span class="help-inline">Pipeline Stages <span class="help-icon">?</span></span>
+          </div>
+          <div class="card-body">
+            <span class="signal-chip">Signal</span>
+            <span class="signal-chip">State Encoder</span>
+            <span class="signal-chip">Retrieval</span>
+            <span class="signal-chip">Hypothesis Update</span>
+            <span class="signal-chip">Decision Ranking</span>
+          </div>
+        </div>
+
+        <div class="card help-target"
+          data-tip-title="Live hypotheses"
+          data-tip-text="Multiple candidate explanations are maintained simultaneously. Each hypothesis has a probability weight and evolves as new evidence arrives.">
+          <div class="card-header">
+            <span class="help-inline">Live Hypotheses <span class="help-icon">?</span></span>
+          </div>
+          <div class="card-body">
+            <div class="hypothesis-list">
+              <div class="hyp-row">
+                <div class="hyp-name">Trend continuation</div>
+                <div class="hyp-track"><div class="hyp-fill" id="hypStatic0" style="width:42%"></div></div>
+                <div class="hyp-val" id="hypStaticVal0">42%</div>
+              </div>
+              <div class="hyp-row">
+                <div class="hyp-name">Volatility spike</div>
+                <div class="hyp-track"><div class="hyp-fill" id="hypStatic1" style="width:31%"></div></div>
+                <div class="hyp-val" id="hypStaticVal1">31%</div>
+              </div>
+              <div class="hyp-row">
+                <div class="hyp-name">Mean reversion</div>
+                <div class="hyp-track"><div class="hyp-fill" id="hypStatic2" style="width:27%"></div></div>
+                <div class="hyp-val" id="hypStaticVal2">27%</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card help-target"
+          data-tip-title="Live hypothesis weights"
+          data-tip-text="This view shows how competing hypotheses change as new evidence arrives. Instead of replacing the old answer each tick, the system updates probability mass across multiple live explanations.">
+          <div class="card-header">
+            <span class="help-inline">Live Hypothesis Weights <span class="help-icon">?</span></span>
+          </div>
+          <div class="card-body">
+            <div class="hyp-evolution" id="hypEvolution">
+              <div class="hyp-line">
+                <div class="hyp-name">Trend continuation</div>
+                <div class="hyp-track"><div class="hyp-fill" id="hypFill0"></div></div>
+                <div class="hyp-val" id="hypVal0">42%</div>
+              </div>
+
+              <div class="hyp-line">
+                <div class="hyp-name">Volatility spike</div>
+                <div class="hyp-track"><div class="hyp-fill" id="hypFill1"></div></div>
+                <div class="hyp-val" id="hypVal1">31%</div>
+              </div>
+
+              <div class="hyp-line">
+                <div class="hyp-name">Mean reversion</div>
+                <div class="hyp-track"><div class="hyp-fill" id="hypFill2"></div></div>
+                <div class="hyp-val" id="hypVal2">27%</div>
+              </div>
+            </div>
+
+            <div class="hyp-note" id="hypNote">
+              Evidence is shifting, but uncertainty remains explicit.
+            </div>
+          </div>
+        </div>
+
+        <div class="card help-target"
+          data-tip-title="Tracked state history"
+          data-tip-text="This chart shows how probability mass moves over time across competing explanations. Instead of a single answer replacing the previous answer every tick, the architecture preserves and updates multiple paths continuously.">
+          <div class="card-header">
+            <span class="help-inline">Tracked State History <span class="help-icon">?</span></span>
+          </div>
+          <div class="card-body">
+            <div class="history-wrap">
+              <canvas id="hypHistoryChart" width="720" height="180"></canvas>
+
+              <div class="history-legend">
+                <div class="history-key">
+                  <span class="history-swatch swatch-trend"></span>
+                  Trend continuation
+                </div>
+                <div class="history-key">
+                  <span class="history-swatch swatch-vol"></span>
+                  Volatility spike
+                </div>
+                <div class="history-key">
+                  <span class="history-swatch swatch-mean"></span>
+                  Mean reversion
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card help-target"
+          data-tip-title="Decision surface"
+          data-tip-text="Instead of executing immediately, candidate actions are evaluated against the current hypothesis distribution. This produces ranked actions with confidence levels.">
+          <div class="card-header">
+            <span class="help-inline">Decision Surface <span class="help-icon">?</span></span>
+          </div>
+          <div class="card-body">
+            <div class="action-list" id="actionList">
+              <div class="action-row">
+                <div class="action-left"><span class="action-rank">1.</span> Hold / wait for confirmation</div>
+                <div class="action-score">0.81</div>
+              </div>
+              <div class="action-row">
+                <div class="action-left"><span class="action-rank">2.</span> Long breakout</div>
+                <div class="action-score">0.64</div>
+              </div>
+              <div class="action-row">
+                <div class="action-left"><span class="action-rank">3.</span> Reduce exposure</div>
+                <div class="action-score">0.46</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card help-target"
+          data-tip-title="Resilient properties"
+          data-tip-text="These are the architectural strengths of the system: explicit competing hypotheses, historical retrieval, tracked state transitions, ranked actions, and inspectable reasoning surfaces.">
+          <div class="card-header">
+            <span class="help-inline">Resilient Properties <span class="help-icon">?</span></span>
+          </div>
+          <div class="card-body">
+            <div class="prop-list">
+              <div class="prop-item">Explicit competing hypotheses</div>
+              <div class="prop-item">Historical retrieval before commitment</div>
+              <div class="prop-item">Smooth probabilistic evolution over time</div>
+              <div class="prop-item">Ranked action surface instead of one-shot output</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+
+    <section class="card divergence-explainer">
+      <div class="card-header">Why the outputs diverge</div>
+      <div class="card-body">
+        Markets behave like a fog of noise: asynchronous, overlapping, partially conflicting signals. The left side emits one answer at a time. The right side maintains multiple live paths, updates them with new evidence, and delays commitment until the structure becomes clearer. That is the core difference between prompt-level inference and tracked state estimation.
+      </div>
+    </section>
+
+    <div class="console-links">
+      <a class="console-btn primary" href="/decks/mht.html">Why this architecture matters</a>
+      <a class="console-btn secondary" href="/research">Back to research</a>
+    </div>
+
+  </main>
+
+  <div id="tooltip">
+    <div id="tooltipTitle"></div>
+    <div id="tooltipText"></div>
   </div>
-</header>
 
-
-<div class="container">
-
-<!-- LEFT SIDE -->
-<div class="column">
-
-<div class="col-name help-target"
- data-tip-title="LLM-only pipeline"
- data-tip-text="A typical LLM architecture converts signals to prompt context and emits one answer.">
-
-<div class="help-inline">
-LLM-Only System
-<span class="help-icon">?</span>
-</div>
-</div>
-
-<div class="col-desc">
-Single inference per tick. Uncertainty collapses to one label.
-</div>
-
-<div class="card">
-<div class="card-header">Current Answer</div>
-<div class="card-body">
-
-<div id="llmAnswer" class="answer-pill">
-BULLISH TREND
-</div>
-
-<div id="llmAnswerSub" class="answer-sub">
-LLM compresses the stream into one label.
-</div>
-
-</div>
-</div>
-
-<div class="card">
-<div class="card-header">LLM Answer Timeline</div>
-
-<div class="card-body">
-
-<canvas id="llmTimelineChart"></canvas>
-
-<div id="llmTimelineNote" class="llm-note">
-LLM emits one label at a time.
-</div>
-
-</div>
-</div>
-
-</div>
-
-
-<!-- RIGHT SIDE -->
-<div class="column">
-
-<div class="col-name">
-Decision Architecture
-</div>
-
-<div class="col-desc">
-Competing hypotheses maintained continuously.
-</div>
-
-<div class="card">
-<div class="card-header">Hypothesis Evolution</div>
-
-<div class="card-body">
-
-<div class="hyp-line">
-<div class="hyp-name">Trend continuation</div>
-<div class="hyp-track"><div id="hypFill0" class="hyp-fill"></div></div>
-<div id="hypVal0" class="hyp-val">42%</div>
-</div>
-
-<div class="hyp-line">
-<div class="hyp-name">Volatility spike</div>
-<div class="hyp-track"><div id="hypFill1" class="hyp-fill"></div></div>
-<div id="hypVal1" class="hyp-val">31%</div>
-</div>
-
-<div class="hyp-line">
-<div class="hyp-name">Mean reversion</div>
-<div class="hyp-track"><div id="hypFill2" class="hyp-fill"></div></div>
-<div id="hypVal2" class="hyp-val">27%</div>
-</div>
-
-<div id="hypNote" class="hyp-note">
-Evidence evolving across multiple paths.
-</div>
-
-</div>
-</div>
-
-
-<div class="card">
-<div class="card-header">Hypothesis History</div>
-
-<div class="card-body">
-
-<canvas id="hypHistoryChart"></canvas>
-
-</div>
-</div>
-
-</div>
-
-</div>
-
-
-<div id="tooltip">
-<div id="tooltipTitle"></div>
-<div id="tooltipText"></div>
-</div>
-
-
-<script src="/static/tooltip.js"></script>
-<script type="module" src="/static/demoController.js"></script>
-
+  <script src="/static/tooltip.js"></script>
+  <script type="module" src="/static/demoController.js"></script>
 </body>
 </html>
