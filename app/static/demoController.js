@@ -182,16 +182,22 @@ function updateActions(frame, vals) {
   `).join("");
 }
 
-function renderFrame(frame) {
-  const vals = mapBackendHypotheses(frame);
-  if (!vals) return;
+function renderFrame(frame){
 
-  updateHypothesisBars(vals);
-  pushHistory(vals);
-  drawHistory();
-  updateLLM(frame, vals);
-  updateActions(frame, vals);
+  lastFrameTimestamp = Date.now()
+  updateLastFrameTime()
+
+  const vals = mapBackendHypotheses(frame)
+  if(!vals) return
+
+  updateHypothesisBars(vals)
+  pushHistory(vals)
+  drawHistory()
+  updateLLM(frame,vals)
+  updateActions(frame,vals)
+
 }
+
 
 function connectStream() {
   if (es) es.close();
