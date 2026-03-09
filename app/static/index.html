@@ -10,8 +10,8 @@
 <body>
 
 <header class="help-target"
- data-tip-title="Architecture comparison"
- data-tip-text="This demo compares a one-shot LLM inference surface with a probabilistic decision architecture that preserves competing hypotheses.">
+  data-tip-title="Architecture comparison"
+  data-tip-text="This demo compares a one-shot LLM inference surface against a multi-hypothesis tracking decision engine. The left side collapses uncertainty to one answer. The right side preserves competing hypotheses and updates them over time.">
 
   <div class="header-title help-inline">
     MHT-FAISS Live Research Console
@@ -21,20 +21,24 @@
   <div class="header-sub">
     Two systems processing the same stream — collapse uncertainty or preserve it.
   </div>
+
   <div class="status-row">
+    <div id="streamStatus" class="stream-badge stream-live">
+      LIVE SSE
+    </div>
 
-  <div id="streamStatus" class="stream-badge stream-live">
-    LIVE SSE
+    <div id="lastFrameTime" class="frame-time">
+      last frame — waiting
+    </div>
+
+    <div id="latencyMeter" class="latency-meter latency-good">
+      <span class="latency-label">latency</span>
+      <span id="latencyValue">— ms</span>
+      <span id="latencyAvg" class="latency-avg">avg —</span>
+    </div>
   </div>
-
-  <div id="lastFrameTime" class="frame-time">
-    last frame — waiting
-  </div>
-
-</div>
-  <div id="streamStatus" class="stream-badge stream-live">LIVE SSE</div>
-</div>
 </header>
+
 
 <div class="container">
 
