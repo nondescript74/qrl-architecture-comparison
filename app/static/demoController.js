@@ -1,5 +1,4 @@
-my import { pushHistory, drawHistory } from "./historyChart.js";
-
+import { pushHistory, drawHistory } from "./historyChart.js";
 const API_BASE = window.location.origin;
 const STREAM_URL = `${API_BASE}/comparison/stream?max_frames=500`;
 
