@@ -4,6 +4,64 @@ font-family:system-ui;
 background:#f6f7f8;
 }
 
+.status-row{
+  margin-top:10px;
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+
+.stream-badge{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:6px 10px;
+  border-radius:999px;
+  font-family:var(--mono);
+  font-size:11px;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  border:1px solid transparent;
+}
+
+.stream-badge::before{
+  content:"";
+  width:8px;
+  height:8px;
+  border-radius:50%;
+  display:inline-block;
+}
+
+.stream-live{
+  color:var(--green);
+  background:rgba(0,135,90,0.08);
+  border-color:rgba(0,135,90,0.18);
+}
+
+.stream-live::before{
+  background:var(--green);
+}
+
+.stream-reconnecting{
+  color:var(--amber);
+  background:rgba(255,143,0,0.08);
+  border-color:rgba(255,143,0,0.18);
+}
+
+.stream-reconnecting::before{
+  background:var(--amber);
+}
+
+.stream-disconnected{
+  color:#c0392b;
+  background:rgba(192,57,43,0.08);
+  border-color:rgba(192,57,43,0.18);
+}
+
+.stream-disconnected::before{
+  background:#c0392b;
+}
+
 .container{
 display:flex;
 gap:24px;
