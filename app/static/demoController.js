@@ -5,6 +5,27 @@ const STREAM_URL = `${API_BASE}/comparison/stream?max_frames=500`;
 
 let es = null;
 
+let reconnectTimer = null;
+let hasReceivedFrame = false;
+
+function setStreamStatus(state, detail = "") {
+  const el = document.getElementById("streamStatus");
+  if (!el) return;
+
+  el.className = "stream-badge";
+
+  if (state === "live") {
+    el.classList.add("stream-live");
+    el.textContent = detail ? `LIVE SSE · ${detail}` : "LIVE SSE";
+  } else if (state === "reconnecting") {
+    el.classList.add("stream-reconnecting");
+    el.textContent = detail ? `RECONNECTING · ${detail}` : "RECONNECTING";
+  } else {
+    el.classList.add("stream-disconnected");
+    el.textContent = detail ? `DISCONNECTED · ${detail}` : "DISCONNECTED";
+  }
+}
+
 function labelFromHypothesisIndex(idx) {
   return [
     "BULLISH TREND",
