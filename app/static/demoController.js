@@ -167,14 +167,40 @@ function renderFrame(frame) {
 
 function connectStream() {
   if (es) es.close();
+  if (reconnectTimer) {
+    clearTimeout(reconnectTimer);
+    reconnectTimer = null;
+  }
+
+  setStreamStatus("reconnecting", "connecting");
+  hasReceivedFrame = false;
 
   es = new EventSource(STREAM_URL);
+
+  es.onopen = () => {
+    setStreamStatus("reconnecting", "stream open");
+  };
 
   es.onmessage = (event) => {
     try {
       const frame = JSON.parse(event.data);
-      if (frame.stage === "config" || frame.stage === "end") return;
+
+      if (frame.stage === "config") {
+        return;
+      }
+
+      if (frame.stage === "end") {
+        setStreamStatus("disconnected", "stream ended");
+        es.close();
+        return;
+      }
+
       renderFrame(frame);
+
+      if (!hasReceivedFrame) {
+        hasReceivedFrame = true;
+        setStreamStatus("live");
+      }
     } catch (err) {
       console.error("Bad frame", err);
     }
@@ -182,8 +208,17 @@ function connectStream() {
 
   es.onerror = () => {
     console.error("SSE disconnected; retrying soon");
-    es.close();
-    setTimeout(connectStream, 2000);
+
+    try { es.close(); } catch (_) {}
+
+    setStreamStatus(
+      hasReceivedFrame ? "reconnecting" : "disconnected",
+      hasReceivedFrame ? "retrying" : "no data"
+    );
+
+    reconnectTimer = setTimeout(() => {
+      connectStream();
+    }, 2000);
   };
 }
 
