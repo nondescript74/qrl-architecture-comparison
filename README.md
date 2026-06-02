@@ -3,6 +3,28 @@
 Live side-by-side demonstration of **LLM-Only** vs **Decision Architecture** pipelines
 processing the same financial or sensor signal stream in real time.
 
+## Position in the system
+
+This repo is the **Architecture Comparison Surface** under **MyControl**.
+
+- **Role:** evidence and demonstration system (NOT a production surface).
+- **Primary home:** MyControl — governed by the control plane.
+- **Secondary linkage:** Phoenix — used as cite-based evidence for
+  Phoenix's MHT / FAISS / decision-over-prompt design choices. Phoenix
+  does **not** import or depend on this repo.
+- **Authority:** classification and placement rules are in
+  [`INTEGRATION_CLASSIFICATION.md`](./INTEGRATION_CLASSIFICATION.md),
+  [`SYSTEM_PLACEMENT.md`](./SYSTEM_PLACEMENT.md), and
+  [`EXPOSURE_SPEC.md`](./EXPOSURE_SPEC.md).
+- **Control plane:** see [`CONTROL_PLANE_LINK.md`](./CONTROL_PLANE_LINK.md)
+  for pointers to S2 (strategic-control-plane) and S3
+  (chatgpt-comprehensive-scp).
+
+Production claims, uptime contracts, trust-safe language enforcement,
+and doctrine PASS gating all live with Phoenix — not here. This surface
+is allowed to fail loudly; it's an animated demonstration of an
+architectural thesis, not a service.
+
 ## What it shows
 
 | LLM-Only | Decision Architecture |

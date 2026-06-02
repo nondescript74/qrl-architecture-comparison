@@ -1,0 +1,1225 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Oil Burden Manifold</title>
+<link href="https://api.fontshare.com/v2/css?f[]=satoshi@300,400,500,700&f[]=cabinet-grotesk@400,500,700,800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --text-xs: clamp(0.75rem, 0.7rem + 0.25vw, 0.875rem);
+  --text-sm: clamp(0.875rem, 0.8rem + 0.35vw, 1rem);
+  --text-base: clamp(1rem, 0.95rem + 0.25vw, 1.125rem);
+  --text-lg: clamp(1.125rem, 1rem + 0.75vw, 1.5rem);
+  --text-xl: clamp(1.5rem, 1.2rem + 1.25vw, 2.25rem);
+  --text-2xl: clamp(2rem, 1.2rem + 2.5vw, 3.5rem);
+  --space-1: 0.25rem; --space-2: 0.5rem; --space-3: 0.75rem; --space-4: 1rem;
+  --space-5: 1.25rem; --space-6: 1.5rem; --space-8: 2rem; --space-10: 2.5rem;
+  --space-12: 3rem; --space-16: 4rem;
+  --radius-sm: 0.375rem; --radius-md: 0.5rem; --radius-lg: 0.75rem;
+  --radius-xl: 1rem; --radius-full: 9999px;
+  --font-display: 'Cabinet Grotesk', 'Helvetica Neue', sans-serif;
+  --font-body: 'Satoshi', 'Inter', sans-serif;
+  --transition-interactive: 180ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+[data-theme="dark"] {
+  --color-bg: #0d0e10;
+  --color-surface: #121318;
+  --color-surface-2: #16181f;
+  --color-surface-offset: #1a1c24;
+  --color-surface-dynamic: #222530;
+  --color-divider: #1e2028;
+  --color-border: #252832;
+  --color-text: #d4d6e0;
+  --color-text-muted: #6e7280;
+  --color-text-faint: #3d4050;
+  --color-primary: #4fa8b8;
+  --color-primary-hover: #3a8fa0;
+  --color-primary-highlight: rgba(79,168,184,0.12);
+  --color-gold: #e8af34;
+  --color-orange: #fd9a40;
+  --color-error: #e05a6a;
+  --color-success: #5db87a;
+  --color-purple: #9b6fe0;
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.4);
+  --shadow-lg: 0 12px 32px rgba(0,0,0,0.5);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { -webkit-font-smoothing: antialiased; scroll-behavior: smooth; }
+body {
+  min-height: 100dvh;
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  color: var(--color-text);
+  background: var(--color-bg);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* LAYOUT */
+.app-shell {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  grid-template-columns: 1fr 320px;
+  height: 100dvh;
+  gap: 0;
+}
+
+/* HEADER */
+.header {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4) var(--space-6);
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  z-index: 10;
+}
+.header-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+.logo-mark {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+}
+.brand-name {
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text);
+}
+.brand-sub {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  margin-top: 1px;
+}
+.header-center {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+.domain-badge {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  background: var(--color-surface-offset);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  font-size: var(--text-xs);
+  font-weight: 500;
+  color: var(--color-text-muted);
+}
+.domain-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-gold);
+  box-shadow: 0 0 6px var(--color-gold);
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.8); }
+}
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+.ctrl-btn {
+  padding: var(--space-2) var(--space-4);
+  background: var(--color-surface-offset);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: var(--text-xs);
+  font-weight: 500;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: all var(--transition-interactive);
+  font-family: var(--font-body);
+}
+.ctrl-btn:hover {
+  color: var(--color-text);
+  border-color: var(--color-primary);
+  background: var(--color-primary-highlight);
+}
+.ctrl-btn.active {
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+  background: var(--color-primary-highlight);
+}
+
+/* CANVAS AREA */
+.canvas-area {
+  position: relative;
+  overflow: hidden;
+  background: var(--color-bg);
+}
+#manifold-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* TIME SCRUBBER */
+.time-scrubber {
+  grid-column: 1 / 2;
+  padding: var(--space-4) var(--space-6);
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+.time-label {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  font-weight: 500;
+  white-space: nowrap;
+  min-width: 80px;
+}
+.time-slider {
+  flex: 1;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 3px;
+  background: var(--color-border);
+  border-radius: var(--radius-full);
+  outline: none;
+  cursor: pointer;
+}
+.time-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  box-shadow: 0 0 8px rgba(79,168,184,0.5);
+  cursor: pointer;
+  transition: transform var(--transition-interactive);
+}
+.time-slider::-webkit-slider-thumb:hover { transform: scale(1.3); }
+.time-week {
+  font-family: var(--font-display);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  color: var(--color-primary);
+  min-width: 60px;
+  text-align: right;
+}
+.play-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all var(--transition-interactive);
+}
+.play-btn:hover { transform: scale(1.1); background: var(--color-primary-hover); }
+.play-btn svg { fill: #0d0e10; }
+
+/* SIDEBAR */
+.sidebar {
+  grid-row: 2 / 4;
+  background: var(--color-surface);
+  border-left: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* COACH INPUT */
+.coach-area {
+  padding: var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+}
+.coach-label {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-text-faint);
+  margin-bottom: var(--space-3);
+}
+.coach-response {
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  font-size: var(--text-xs);
+  line-height: 1.6;
+  color: var(--color-text-muted);
+  min-height: 80px;
+  margin-bottom: var(--space-3);
+  transition: all 0.4s ease;
+}
+.coach-response.active {
+  border-color: rgba(79,168,184,0.3);
+  background: rgba(79,168,184,0.04);
+  color: var(--color-text);
+}
+.coach-input-row {
+  display: flex;
+  gap: var(--space-2);
+}
+.coach-input {
+  flex: 1;
+  background: var(--color-surface-offset);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-xs);
+  font-family: var(--font-body);
+  color: var(--color-text);
+  outline: none;
+  transition: border-color var(--transition-interactive);
+}
+.coach-input:focus { border-color: var(--color-primary); }
+.coach-input::placeholder { color: var(--color-text-faint); }
+.coach-send {
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-primary);
+  border: none;
+  border-radius: var(--radius-md);
+  color: #0d0e10;
+  font-size: var(--text-xs);
+  font-weight: 700;
+  cursor: pointer;
+  font-family: var(--font-body);
+  transition: all var(--transition-interactive);
+}
+.coach-send:hover { background: var(--color-primary-hover); }
+
+/* TRAJECTORIES PANEL */
+.traj-panel {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-4);
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border) transparent;
+}
+.traj-panel::-webkit-scrollbar { width: 4px; }
+.traj-panel::-webkit-scrollbar-track { background: transparent; }
+.traj-panel::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 2px; }
+
+.panel-section-label {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-text-faint);
+  margin-bottom: var(--space-3);
+}
+
+.traj-card {
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  margin-bottom: var(--space-3);
+  cursor: pointer;
+  transition: all var(--transition-interactive);
+  position: relative;
+  overflow: hidden;
+}
+.traj-card::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: var(--traj-color, var(--color-border));
+  border-radius: 2px 0 0 2px;
+  transition: opacity var(--transition-interactive);
+}
+.traj-card:hover {
+  border-color: var(--traj-color, var(--color-border));
+  transform: translateX(2px);
+}
+.traj-card.selected {
+  border-color: var(--traj-color, var(--color-primary));
+  background: color-mix(in oklch, var(--traj-color, var(--color-primary)) 6%, var(--color-surface-2));
+}
+.traj-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: var(--space-2);
+  gap: var(--space-2);
+}
+.traj-name {
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--color-text);
+  line-height: 1.2;
+}
+.traj-status {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.status-rising {
+  background: rgba(232,175,52,0.15);
+  color: var(--color-gold);
+}
+.status-degrading {
+  background: rgba(224,90,106,0.15);
+  color: var(--color-error);
+}
+.status-weak {
+  background: rgba(110,114,128,0.15);
+  color: var(--color-text-muted);
+}
+.status-emerging {
+  background: rgba(79,168,184,0.15);
+  color: var(--color-primary);
+}
+
+.burden-bar-row {
+  margin-top: var(--space-3);
+}
+.burden-bar-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-1);
+}
+.burden-bar-track {
+  height: 4px;
+  background: var(--color-border);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+.burden-bar-fill {
+  height: 100%;
+  border-radius: var(--radius-full);
+  background: var(--traj-color, var(--color-primary));
+  transition: width 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 0 6px var(--traj-color, var(--color-primary));
+}
+
+.traj-description {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  line-height: 1.5;
+  margin-top: var(--space-2);
+  display: none;
+}
+.traj-card.selected .traj-description { display: block; }
+
+.traj-metrics {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+  display: none;
+}
+.traj-card.selected .traj-metrics { display: grid; }
+.metric-chip {
+  background: var(--color-surface-offset);
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-3);
+}
+.metric-chip-label {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text-faint);
+  margin-bottom: 2px;
+}
+.metric-chip-val {
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+/* ADJUDICATION */
+.adjudication-panel {
+  padding: var(--space-4);
+  border-top: 1px solid var(--color-border);
+}
+.adj-label {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-text-faint);
+  margin-bottom: var(--space-3);
+}
+.adj-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface-2);
+  border: 1px solid rgba(79,168,184,0.2);
+  border-radius: var(--radius-lg);
+}
+.adj-tag {
+  font-family: var(--font-display);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-primary);
+}
+.adj-scope {
+  font-size: 9px;
+  color: var(--color-text-faint);
+  text-align: right;
+  line-height: 1.4;
+}
+
+/* CANVAS OVERLAY ELEMENTS */
+.canvas-overlay {
+  position: absolute;
+  top: var(--space-4);
+  left: var(--space-4);
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.overlay-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  background: rgba(13,14,16,0.85);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  width: fit-content;
+}
+.overlay-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.legend-panel {
+  position: absolute;
+  bottom: var(--space-4);
+  left: var(--space-4);
+  background: rgba(13,14,16,0.85);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-3) var(--space-4);
+  pointer-events: none;
+}
+.legend-title {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-text-faint);
+  margin-bottom: var(--space-3);
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-2);
+}
+.legend-swatch {
+  width: 24px;
+  height: 3px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+.legend-swatch.dashed {
+  background: transparent;
+  border-bottom: 2px dashed;
+}
+
+.tooltip-pin {
+  position: absolute;
+  background: rgba(13,14,16,0.95);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-3) var(--space-4);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s;
+  max-width: 180px;
+  z-index: 20;
+}
+.tooltip-pin.visible { opacity: 1; }
+.tooltip-pin-name {
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--color-text);
+  margin-bottom: var(--space-1);
+}
+.tooltip-pin-detail {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  line-height: 1.5;
+}
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="header-brand">
+      <svg class="logo-mark" viewBox="0 0 32 32" fill="none" aria-label="Possibility Field Navigator">
+        <circle cx="16" cy="16" r="14" stroke="currentColor" stroke-width="1.5" opacity="0.2"/>
+        <circle cx="16" cy="16" r="6" fill="none" stroke="#4fa8b8" stroke-width="1.5"/>
+        <circle cx="16" cy="16" r="2.5" fill="#4fa8b8"/>
+        <path d="M16 2 L16 10 M16 22 L16 30 M2 16 L10 16 M22 16 L30 16" stroke="currentColor" stroke-width="1" opacity="0.3"/>
+        <circle cx="8" cy="8" r="1.5" fill="#e8af34" opacity="0.7"/>
+        <circle cx="24" cy="10" r="1" fill="#e05a6a" opacity="0.6"/>
+        <circle cx="7" cy="23" r="1" fill="#5db87a" opacity="0.5"/>
+      </svg>
+      <div>
+        <div class="brand-name">Possibility Field</div>
+        <div class="brand-sub">Structural Emergence Navigator</div>
+      </div>
+    </div>
+
+    <div class="header-center">
+      <div class="domain-badge">
+        <div class="domain-dot"></div>
+        Oil · 3–6 Week Horizon
+      </div>
+    </div>
+
+    <div class="header-controls">
+      <button class="ctrl-btn active" id="btn-burden">Burden Field</button>
+      <button class="ctrl-btn" id="btn-heat">Heat Flow</button>
+      <button class="ctrl-btn" id="btn-counterfactual">Counterfactuals</button>
+    </div>
+  </header>
+
+  <!-- CANVAS AREA -->
+  <main class="canvas-area">
+    <canvas id="manifold-canvas"></canvas>
+
+    <div class="canvas-overlay">
+      <div class="overlay-badge">
+        <div class="overlay-dot" style="background:#e8af34; box-shadow:0 0 4px #e8af34;"></div>
+        Trajectory A — Supply Fragility
+      </div>
+      <div class="overlay-badge">
+        <div class="overlay-dot" style="background:#e05a6a; box-shadow:0 0 4px #e05a6a;"></div>
+        Trajectory B — Demand Collapse
+      </div>
+      <div class="overlay-badge">
+        <div class="overlay-dot" style="background:#5db87a; box-shadow:0 0 4px #5db87a;"></div>
+        Trajectory C — Range Oscillation
+      </div>
+    </div>
+
+    <div class="legend-panel">
+      <div class="legend-title">Visual Layer Key</div>
+      <div class="legend-item"><div class="legend-swatch" style="background:rgba(255,255,255,0.4);"></div> Field density</div>
+      <div class="legend-item"><div class="legend-swatch" style="background:linear-gradient(90deg,#232a3a,#e8af34);"></div> Burden gradient</div>
+      <div class="legend-item"><div class="legend-swatch" style="background:rgba(224,90,106,0.6);"></div> Contradiction heat</div>
+      <div class="legend-item"><div class="legend-swatch dashed" style="border-color: #4fa8b8;"></div> PM49 scope shell</div>
+    </div>
+
+    <div class="tooltip-pin" id="tooltip"></div>
+  </main>
+
+  <!-- TIME SCRUBBER -->
+  <div class="time-scrubber">
+    <div class="time-label">Temporal Horizon</div>
+    <button class="play-btn" id="play-btn" aria-label="Play animation">
+      <svg width="10" height="12" viewBox="0 0 10 12"><path d="M0 0L10 6L0 12V0Z"/></svg>
+    </button>
+    <input type="range" class="time-slider" id="time-slider" min="0" max="100" value="0">
+    <div class="time-week" id="time-week">Week 1</div>
+  </div>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+
+    <div class="coach-area">
+      <div class="coach-label">Field Interrogation</div>
+      <div class="coach-response active" id="coach-response">
+        Three structurally distinct possibility regions are competing. Trajectory A is accumulating burden rapidly under supply fragility and geopolitical compression. Trajectory B shows degrading coherence. Trajectory C has weak manifold persistence. Select a trajectory to inspect its burden structure.
+      </div>
+      <div class="coach-input-row">
+        <input type="text" class="coach-input" id="coach-input" placeholder="Interrogate the field…" value="What does oil look like 3–6 weeks out?">
+        <button class="coach-send" id="coach-send">→</button>
+      </div>
+    </div>
+
+    <div class="traj-panel">
+      <div class="panel-section-label">Candidate Trajectories</div>
+
+      <div class="traj-card selected" data-traj="A" style="--traj-color: #e8af34;">
+        <div class="traj-header">
+          <div class="traj-name">Supply Fragility<br>+ Geopolitical Compression</div>
+          <div class="traj-status status-rising">Rising</div>
+        </div>
+        <div class="burden-bar-row">
+          <div class="burden-bar-label"><span>Burden</span><span id="burden-A">78%</span></div>
+          <div class="burden-bar-track">
+            <div class="burden-bar-fill" id="bar-A" style="width:78%;"></div>
+          </div>
+        </div>
+        <div class="traj-description">
+          Strait of Hormuz risk premium re-pricing. Speculative positioning at multi-year highs. Supply draw exceeds forward model. Attractor well deepening — structural inevitability rising.
+        </div>
+        <div class="traj-metrics">
+          <div class="metric-chip">
+            <div class="metric-chip-label">Coherence</div>
+            <div class="metric-chip-val" style="color:#e8af34;">High</div>
+          </div>
+          <div class="metric-chip">
+            <div class="metric-chip-label">Attractor Depth</div>
+            <div class="metric-chip-val" style="color:#e8af34;">Deep</div>
+          </div>
+          <div class="metric-chip">
+            <div class="metric-chip-label">Contradiction</div>
+            <div class="metric-chip-val">Low</div>
+          </div>
+          <div class="metric-chip">
+            <div class="metric-chip-label">Emergence</div>
+            <div class="metric-chip-val" style="color:#e8af34;">Strong</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="traj-card" data-traj="B" style="--traj-color: #e05a6a;">
+        <div class="traj-header">
+          <div class="traj-name">Demand Collapse<br>Thesis</div>
+          <div class="traj-status status-degrading">Degrading</div>
+        </div>
+        <div class="burden-bar-row">
+          <div class="burden-bar-label"><span>Burden</span><span id="burden-B">41%</span></div>
+          <div class="burden-bar-track">
+            <div class="burden-bar-fill" id="bar-B" style="width:41%;"></div>
+          </div>
+        </div>
+        <div class="traj-description">
+          IEA surplus forecast still formally active. Tariff uncertainty creating demand-side contradictions. But structural supply draw evidence is accumulating contradictions against this thesis. Coherence fracturing.
+        </div>
+        <div class="traj-metrics">
+          <div class="metric-chip">
+            <div class="metric-chip-label">Coherence</div>
+            <div class="metric-chip-val" style="color:#e05a6a;">Degrading</div>
+          </div>
+          <div class="metric-chip">
+            <div class="metric-chip-label">Attractor Depth</div>
+            <div class="metric-chip-val" style="color:#e05a6a;">Shallow</div>
+          </div>
+          <div class="metric-chip">
+            <div class="metric-chip-label">Contradiction</div>
+            <div class="metric-chip-val" style="color:#e05a6a;">Rising</div>
+          </div>
+          <div class="metric-chip">
+            <div class="metric-chip-label">Emergence</div>
+            <div class="metric-chip-val">Weak</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="traj-card" data-traj="C" style="--traj-color: #5db87a;">
+        <div class="traj-header">
+          <div class="traj-name">Range-Bound<br>Oscillation</div>
+          <div class="traj-status status-weak">Weak</div>
+        </div>
+        <div class="burden-bar-row">
+          <div class="burden-bar-label"><span>Burden</span><span id="burden-C">22%</span></div>
+          <div class="burden-bar-track">
+            <div class="burden-bar-fill" id="bar-C" style="width:22%;"></div>
+          </div>
+        </div>
+        <div class="traj-description">
+          Diplomatic resolution scenarios suppressing upside premium. Low burden accumulation. Weak manifold persistence — this trajectory is structurally unsupported under current contradiction density.
+        </div>
+        <div class="traj-metrics">
+          <div class="metric-chip">
+            <div class="metric-chip-label">Coherence</div>
+            <div class="metric-chip-val" style="color:#5db87a;">Stable</div>
+          </div>
+          <div class="metric-chip">
+            <div class="metric-chip-label">Attractor Depth</div>
+            <div class="metric-chip-val">Very Shallow</div>
+          </div>
+          <div class="metric-chip">
+            <div class="metric-chip-label">Contradiction</div>
+            <div class="metric-chip-val">Low</div>
+          </div>
+          <div class="metric-chip">
+            <div class="metric-chip-label">Emergence</div>
+            <div class="metric-chip-val">Not Forming</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="adjudication-panel">
+      <div class="adj-label">PM49 Adjudication</div>
+      <div class="adj-status">
+        <div class="adj-tag" id="adj-tag">BURDEN STRENGTHENING</div>
+        <div class="adj-scope">Frozen doctrine<br>Wk 1–6 scope<br>Supply fragility thesis</div>
+      </div>
+    </div>
+  </aside>
+
+</div>
+
+<script>
+// === MANIFOLD CANVAS ENGINE ===
+const canvas = document.getElementById('manifold-canvas');
+const ctx = canvas.getContext('2d');
+
+let W, H, animFrame, t = 0, isPlaying = false;
+let timeProgress = 0;
+let selectedTraj = 'A';
+let viewMode = 'burden';
+let showCounterfactual = false;
+let mouseX = 0, mouseY = 0;
+
+// Trajectory attractor definitions
+const trajectories = {
+  A: { cx: 0.35, cy: 0.42, color: '#e8af34', colorRgb: [232,175,52], burden: 0.78, radius: 0.18, label: 'Supply Fragility' },
+  B: { cx: 0.62, cy: 0.58, color: '#e05a6a', colorRgb: [224,90,106], burden: 0.41, radius: 0.11, label: 'Demand Collapse' },
+  C: { cx: 0.50, cy: 0.28, color: '#5db87a', colorRgb: [93,184,122], burden: 0.22, radius: 0.08, label: 'Range Oscillation' }
+};
+
+// Contradiction heat sources
+const heatSources = [
+  { x: 0.28, y: 0.55, intensity: 0.85, freq: 0.7 },
+  { x: 0.45, y: 0.70, intensity: 0.60, freq: 0.5 },
+  { x: 0.68, y: 0.38, intensity: 0.45, freq: 0.9 },
+  { x: 0.20, y: 0.30, intensity: 0.30, freq: 1.1 }
+];
+
+function resize() {
+  const rect = canvas.parentElement.getBoundingClientRect();
+  W = canvas.width = rect.width;
+  H = canvas.height = rect.height;
+}
+
+function lerp(a, b, t) { return a + (b - a) * t; }
+function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+function noise(x, y, t) {
+  return Math.sin(x * 3.1 + t * 0.8) * 0.5 + 
+         Math.sin(y * 2.7 + t * 0.6 + 1.3) * 0.3 +
+         Math.sin((x + y) * 1.9 + t * 0.4 + 2.7) * 0.2;
+}
+
+function drawManifold(timestamp) {
+  t = timestamp * 0.001;
+  const tp = timeProgress / 100;
+  ctx.clearRect(0, 0, W, H);
+
+  // --- LAYER 1: Field density background (dark base + particle field) ---
+  const bgGrad = ctx.createRadialGradient(W*0.4, H*0.5, 0, W*0.5, H*0.5, W*0.65);
+  bgGrad.addColorStop(0, 'rgba(18,19,24,1)');
+  bgGrad.addColorStop(1, 'rgba(13,14,16,1)');
+  ctx.fillStyle = bgGrad;
+  ctx.fillRect(0, 0, W, H);
+
+  // --- LAYER 2: Possibility field density (dim flowing gradients) ---
+  const fieldRes = 6;
+  for (let gx = 0; gx < W; gx += fieldRes) {
+    for (let gy = 0; gy < H; gy += fieldRes) {
+      const nx = gx / W, ny = gy / H;
+      let density = 0;
+      for (const k in trajectories) {
+        const tr = trajectories[k];
+        const dx = nx - tr.cx, dy = ny - tr.cy;
+        const dist = Math.sqrt(dx*dx + dy*dy);
+        const burdenNow = tr.burden * (0.6 + tp * 0.4);
+        density += Math.exp(-dist * dist / (0.04 * burdenNow)) * burdenNow;
+      }
+      const n = noise(nx, ny, t * 0.3) * 0.15;
+      const alpha = clamp(density * 0.12 + n * 0.04, 0, 0.3);
+      if (alpha > 0.01) {
+        ctx.fillStyle = `rgba(79,168,184,${alpha})`;
+        ctx.fillRect(gx, gy, fieldRes, fieldRes);
+      }
+    }
+  }
+
+  // --- LAYER 3: Burden gradient heat map (per-trajectory) ---
+  for (const k in trajectories) {
+    const tr = trajectories[k];
+    const burdenNow = tr.burden * (0.5 + tp * 0.5);
+    const cx = tr.cx * W, cy = tr.cy * H;
+    const r = tr.radius * Math.min(W, H) * (0.8 + burdenNow * 0.4);
+    const [rr, gg, bb] = tr.colorRgb;
+
+    const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
+    grad.addColorStop(0, `rgba(${rr},${gg},${bb},${0.15 * burdenNow})`);
+    grad.addColorStop(0.4, `rgba(${rr},${gg},${bb},${0.07 * burdenNow})`);
+    grad.addColorStop(1, `rgba(${rr},${gg},${bb},0)`);
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(cx, cy, r * 1.5, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // --- LAYER 4: Contradiction heat flow (if heat mode or always subtle) ---
+  if (viewMode === 'heat' || viewMode === 'burden') {
+    for (const hs of heatSources) {
+      const intensity = hs.intensity * (0.5 + 0.5 * Math.sin(t * hs.freq)) * (0.4 + tp * 0.6);
+      const cx = hs.x * W, cy = hs.y * H;
+      const r = 0.12 * Math.min(W, H) * (0.7 + intensity * 0.5);
+      const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
+      const alpha = viewMode === 'heat' ? intensity * 0.35 : intensity * 0.12;
+      grad.addColorStop(0, `rgba(224,90,106,${alpha})`);
+      grad.addColorStop(0.6, `rgba(224,90,106,${alpha * 0.3})`);
+      grad.addColorStop(1, 'rgba(224,90,106,0)');
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  // --- LAYER 5: Flow lines (structural motion vectors) ---
+  ctx.save();
+  const numLines = 24;
+  for (let i = 0; i < numLines; i++) {
+    const angle = (i / numLines) * Math.PI * 2;
+    const startR = 0.38 * Math.min(W, H);
+    const cx = W * 0.5 + Math.cos(angle + t * 0.08) * startR * 0.3;
+    const cy = H * 0.5 + Math.sin(angle + t * 0.08) * startR * 0.3;
+    const dominantTraj = trajectories[selectedTraj];
+    const tx = dominantTraj.cx * W;
+    const ty = dominantTraj.cy * H;
+    const dx = tx - cx, dy = ty - cy;
+    const len = Math.sqrt(dx*dx + dy*dy);
+
+    if (len > 10) {
+      const progress = ((t * 0.3 + i * 0.15) % 1.0);
+      const px = cx + dx * progress;
+      const py = cy + dy * progress;
+      const [rr, gg, bb] = dominantTraj.colorRgb;
+      const alpha = Math.sin(progress * Math.PI) * 0.25 * dominantTraj.burden;
+      ctx.beginPath();
+      ctx.arc(px, py, 1.5, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(${rr},${gg},${bb},${alpha})`;
+      ctx.fill();
+    }
+  }
+  ctx.restore();
+
+  // --- LAYER 6: Manifold deformation lines (topology evolving) ---
+  ctx.save();
+  const numContours = 5;
+  for (let c = 0; c < numContours; c++) {
+    const levelRatio = (c + 1) / (numContours + 1);
+    ctx.beginPath();
+    const pts = 120;
+    let first = true;
+    for (let i = 0; i <= pts; i++) {
+      const angle = (i / pts) * Math.PI * 2;
+      let r = levelRatio * 0.42 * Math.min(W, H);
+      for (const k in trajectories) {
+        const tr = trajectories[k];
+        const burdenNow = tr.burden * (0.5 + tp * 0.5);
+        const da = angle - Math.atan2(tr.cy - 0.5, tr.cx - 0.5);
+        const influence = burdenNow * tr.radius * Math.exp(-Math.pow(da, 2) * 3) * 0.7;
+        r += influence * Math.min(W, H) * (0.5 + 0.5 * Math.sin(t * 0.2 + c));
+      }
+      const n = noise(angle, levelRatio, t * 0.15) * 0.04 * Math.min(W, H);
+      r += n;
+      const px = W * 0.5 + Math.cos(angle) * r;
+      const py = H * 0.5 + Math.sin(angle) * r;
+      if (first) { ctx.moveTo(px, py); first = false; }
+      else ctx.lineTo(px, py);
+    }
+    ctx.closePath();
+    ctx.strokeStyle = `rgba(79,168,184,${0.04 + c * 0.02})`;
+    ctx.lineWidth = 0.5;
+    ctx.stroke();
+  }
+  ctx.restore();
+
+  // --- LAYER 7: Attractor wells (deep glow rings) ---
+  for (const k in trajectories) {
+    const tr = trajectories[k];
+    const burdenNow = tr.burden * (0.5 + tp * 0.5);
+    const cx = tr.cx * W, cy = tr.cy * H;
+    const [rr, gg, bb] = tr.colorRgb;
+    const r = tr.radius * Math.min(W, H);
+    const isSelected = k === selectedTraj;
+
+    // Well rings
+    for (let ring = 3; ring >= 0; ring--) {
+      const ringR = r * (0.3 + ring * 0.25);
+      const alpha = burdenNow * (0.06 + ring * 0.03) * (isSelected ? 1.8 : 0.8);
+      ctx.beginPath();
+      ctx.arc(cx, cy, ringR, 0, Math.PI * 2);
+      ctx.strokeStyle = `rgba(${rr},${gg},${bb},${alpha})`;
+      ctx.lineWidth = isSelected ? 1.5 : 0.8;
+      ctx.stroke();
+    }
+
+    // Central attractor point — pulsing
+    const pulse = 0.7 + 0.3 * Math.sin(t * 1.5 + (k === 'A' ? 0 : k === 'B' ? 2.1 : 4.2));
+    ctx.beginPath();
+    ctx.arc(cx, cy, 3 * pulse * (isSelected ? 1.5 : 1), 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(${rr},${gg},${bb},${0.6 + burdenNow * 0.4})`;
+    ctx.fill();
+
+    // Glow
+    const glowGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, r * 0.4);
+    glowGrad.addColorStop(0, `rgba(${rr},${gg},${bb},${isSelected ? 0.18 : 0.06})`);
+    glowGrad.addColorStop(1, `rgba(${rr},${gg},${bb},0)`);
+    ctx.fillStyle = glowGrad;
+    ctx.beginPath();
+    ctx.arc(cx, cy, r * 0.4, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Label
+    ctx.font = `500 ${11}px Satoshi, sans-serif`;
+    ctx.fillStyle = `rgba(${rr},${gg},${bb},${isSelected ? 0.9 : 0.5})`;
+    ctx.fillText(tr.label, cx + r * 0.5, cy - r * 0.3);
+    ctx.font = `400 ${10}px Satoshi, sans-serif`;
+    ctx.fillStyle = `rgba(${rr},${gg},${bb},${isSelected ? 0.6 : 0.3})`;
+    ctx.fillText(`Burden ${Math.round(burdenNow * 100)}%`, cx + r * 0.5, cy - r * 0.3 + 14);
+  }
+
+  // --- LAYER 8: PM49 Confidence shell (dashed boundary) ---
+  const shellR = 0.36 * Math.min(W, H) * (0.9 + tp * 0.15);
+  const shellDeform = 0.03 * Math.min(W, H);
+  ctx.save();
+  ctx.setLineDash([8, 6]);
+  ctx.beginPath();
+  const shellPts = 100;
+  for (let i = 0; i <= shellPts; i++) {
+    const angle = (i / shellPts) * Math.PI * 2;
+    const n = noise(angle * 2, 0.5, t * 0.1) * shellDeform;
+    const r = shellR + n;
+    const px = W * 0.5 + Math.cos(angle) * r;
+    const py = H * 0.5 + Math.sin(angle) * r;
+    if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+  }
+  ctx.closePath();
+  ctx.strokeStyle = `rgba(79,168,184,${0.12 + 0.06 * Math.sin(t * 0.5)})`;
+  ctx.lineWidth = 1;
+  ctx.stroke();
+  ctx.restore();
+
+  // --- LAYER 9: Counterfactual branches ---
+  if (showCounterfactual) {
+    const cfBranches = [
+      { x: 0.75, y: 0.20, label: 'Diplomatic resolution', alpha: 0.3 },
+      { x: 0.15, y: 0.65, label: 'Supply shock escalation', alpha: 0.25 },
+    ];
+    for (const cf of cfBranches) {
+      const cx = cf.x * W, cy = cf.y * H;
+      ctx.save();
+      ctx.setLineDash([3, 6]);
+      ctx.beginPath();
+      ctx.arc(cx, cy, 0.06 * Math.min(W, H), 0, Math.PI * 2);
+      ctx.strokeStyle = `rgba(155,111,224,${cf.alpha})`;
+      ctx.lineWidth = 1;
+      ctx.stroke();
+      ctx.restore();
+      ctx.font = `400 10px Satoshi, sans-serif`;
+      ctx.fillStyle = `rgba(155,111,224,${cf.alpha * 1.3})`;
+      ctx.fillText(cf.label, cx + 0.07 * Math.min(W, H), cy);
+    }
+  }
+
+  // --- LAYER 10: Particle system (field quanta) ---
+  const numParticles = 60;
+  for (let i = 0; i < numParticles; i++) {
+    const seed = i * 2.399;
+    const orbit = 0.15 + (i / numParticles) * 0.35;
+    const angle = seed + t * (0.1 + (i % 7) * 0.02);
+    const tr = trajectories[selectedTraj];
+    const cx = tr.cx * W + Math.cos(angle) * orbit * Math.min(W, H) * 0.5;
+    const cy = tr.cy * H + Math.sin(angle) * orbit * Math.min(W, H) * 0.5 * 0.7;
+    const [rr, gg, bb] = tr.colorRgb;
+    const falloff = Math.exp(-orbit * 2.5);
+    const alpha = falloff * 0.3 * tr.burden;
+    if (alpha > 0.01) {
+      ctx.beginPath();
+      ctx.arc(cx, cy, 1, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(${rr},${gg},${bb},${alpha})`;
+      ctx.fill();
+    }
+  }
+
+  animFrame = requestAnimationFrame(drawManifold);
+}
+
+// Time scrubber interaction
+const slider = document.getElementById('time-slider');
+const weekLabel = document.getElementById('time-week');
+const playBtn = document.getElementById('play-btn');
+let playInterval = null;
+
+slider.addEventListener('input', () => {
+  timeProgress = parseInt(slider.value);
+  const week = Math.round(1 + timeProgress / 100 * 5);
+  weekLabel.textContent = `Week ${week}`;
+  updateBurdenBars(timeProgress / 100);
+});
+
+function updateBurdenBars(tp) {
+  const bA = Math.round((0.78 * (0.6 + tp * 0.4)) * 100);
+  const bB = Math.round((0.41 * (0.8 - tp * 0.2)) * 100);
+  const bC = Math.round((0.22 * (0.7 + tp * 0.1)) * 100);
+  document.getElementById('bar-A').style.width = bA + '%';
+  document.getElementById('bar-B').style.width = bB + '%';
+  document.getElementById('bar-C').style.width = bC + '%';
+  document.getElementById('burden-A').textContent = bA + '%';
+  document.getElementById('burden-B').textContent = bB + '%';
+  document.getElementById('burden-C').textContent = bC + '%';
+  const adjTag = document.getElementById('adj-tag');
+  if (bA > 85) adjTag.textContent = 'VALIDATED WITHIN SCOPE';
+  else if (bA > 70) adjTag.textContent = 'BURDEN STRENGTHENING';
+  else adjTag.textContent = 'EXPLORATORY';
+  adjTag.style.color = bA > 85 ? '#5db87a' : bA > 70 ? '#e8af34' : '#4fa8b8';
+}
+
+playBtn.addEventListener('click', () => {
+  if (playInterval) {
+    clearInterval(playInterval);
+    playInterval = null;
+    playBtn.innerHTML = '<svg width="10" height="12" viewBox="0 0 10 12"><path d="M0 0L10 6L0 12V0Z" fill="#0d0e10"/></svg>';
+  } else {
+    playBtn.innerHTML = '<svg width="10" height="10" viewBox="0 0 10 10"><rect x="0" y="0" width="3.5" height="10" rx="1" fill="#0d0e10"/><rect x="6.5" y="0" width="3.5" height="10" rx="1" fill="#0d0e10"/></svg>';
+    playInterval = setInterval(() => {
+      timeProgress = Math.min(100, timeProgress + 1);
+      slider.value = timeProgress;
+      const week = Math.round(1 + timeProgress / 100 * 5);
+      weekLabel.textContent = `Week ${week}`;
+      updateBurdenBars(timeProgress / 100);
+      if (timeProgress >= 100) {
+        clearInterval(playInterval);
+        playInterval = null;
+        playBtn.innerHTML = '<svg width="10" height="12" viewBox="0 0 10 12"><path d="M0 0L10 6L0 12V0Z" fill="#0d0e10"/></svg>';
+        setTimeout(() => {
+          timeProgress = 0;
+          slider.value = 0;
+          weekLabel.textContent = 'Week 1';
+          updateBurdenBars(0);
+        }, 1500);
+      }
+    }, 80);
+  }
+});
+
+// Trajectory card selection
+document.querySelectorAll('.traj-card').forEach(card => {
+  card.addEventListener('click', () => {
+    document.querySelectorAll('.traj-card').forEach(c => c.classList.remove('selected'));
+    card.classList.add('selected');
+    selectedTraj = card.dataset.traj;
+    trajectories[selectedTraj].cx;
+  });
+});
+
+// View mode controls
+document.getElementById('btn-burden').addEventListener('click', function() {
+  viewMode = 'burden';
+  this.classList.add('active');
+  document.getElementById('btn-heat').classList.remove('active');
+  document.getElementById('btn-counterfactual').classList.remove('active');
+  showCounterfactual = false;
+});
+document.getElementById('btn-heat').addEventListener('click', function() {
+  viewMode = 'heat';
+  this.classList.add('active');
+  document.getElementById('btn-burden').classList.remove('active');
+  document.getElementById('btn-counterfactual').classList.remove('active');
+  showCounterfactual = false;
+});
+document.getElementById('btn-counterfactual').addEventListener('click', function() {
+  showCounterfactual = !showCounterfactual;
+  this.classList.toggle('active', showCounterfactual);
+  viewMode = showCounterfactual ? 'counterfactual' : 'burden';
+});
+
+// Coach interaction
+const coachResponses = {
+  'supply': 'Supply fragility is the dominant burden vector. Strait of Hormuz risk premium is re-pricing. Speculative positioning at multi-year highs. Attractor well deepening toward structural inevitability.',
+  'demand': 'Demand collapse thesis is losing coherence. IEA surplus forecast remains formally active but contradictions are accumulating. Structural draw evidence is fracturing this thesis.',
+  'bitcoin': 'Domain switching to Drone–Bitcoin Coupling Field. Geopolitical instability burden is co-amplifying defense autonomy and decentralized hard-asset narratives simultaneously.',
+  'drone': 'Drone–Bitcoin coupling detected. Military autonomy adoption burden rising rapidly. Sovereign trust burden rising. These two domains share the same upstream pressure source.',
+  'geopolit': 'Geopolitical compression is the primary upstream driver. It simultaneously pressures supply fragility (Trajectory A) and sovereign trust (cross-domain coupling). This is a shared burden source.',
+  'default': 'Three structurally distinct possibility regions are active. Trajectory A (Supply Fragility) is accumulating burden rapidly. Trajectory B (Demand Collapse) shows degrading coherence. Trajectory C has weak manifold persistence.'
+};
+document.getElementById('coach-send').addEventListener('click', () => {
+  const input = document.getElementById('coach-input').value.toLowerCase();
+  const response = document.getElementById('coach-response');
+  response.classList.remove('active');
+  setTimeout(() => {
+    let text = coachResponses.default;
+    for (const key in coachResponses) {
+      if (input.includes(key)) { text = coachResponses[key]; break; }
+    }
+    response.textContent = text;
+    response.classList.add('active');
+  }, 200);
+});
+document.getElementById('coach-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('coach-send').click();
+});
+
+// Mouse hover tooltip
+canvas.addEventListener('mousemove', (e) => {
+  const rect = canvas.getBoundingClientRect();
+  mouseX = e.clientX - rect.left;
+  mouseY = e.clientY - rect.top;
+  const mx = mouseX / W, my = mouseY / H;
+  const tooltip = document.getElementById('tooltip');
+  let closest = null, minDist = Infinity;
+  for (const k in trajectories) {
+    const tr = trajectories[k];
+    const dx = mx - tr.cx, dy = my - tr.cy;
+    const dist = Math.sqrt(dx*dx + dy*dy);
+    if (dist < tr.radius * 1.5 && dist < minDist) { minDist = dist; closest = k; }
+  }
+  if (closest) {
+    const tr = trajectories[closest];
+    tooltip.querySelector('.tooltip-pin-name').textContent = tr.label;
+    tooltip.querySelector('.tooltip-pin-detail').innerHTML = `Burden: ${Math.round(tr.burden * 100)}%<br>Attractor: ${closest === 'A' ? 'Deep' : closest === 'B' ? 'Shallow' : 'Very shallow'}`;
+    tooltip.style.left = (mouseX + 16) + 'px';
+    tooltip.style.top = (mouseY - 20) + 'px';
+    tooltip.classList.add('visible');
+  } else {
+    tooltip.classList.remove('visible');
+  }
+});
+canvas.addEventListener('mouseleave', () => document.getElementById('tooltip').classList.remove('visible'));
+
+// Init
+window.addEventListener('resize', () => { resize(); });
+resize();
+requestAnimationFrame(drawManifold);
+</script>
+</body>
+</html>
